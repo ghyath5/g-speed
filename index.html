@@ -11,21 +11,38 @@
   crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.css">
   <script src="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" />
+  <script src="https://kit.fontawesome.com/31f72831b4.js"></script>
     </head>
     <body>
         <div id="app">
             <div class="users-list" :class="{'open-list':openUsersList}">
-                <span class="oi oi-chevron-right"></span>
+                <!--<div>Developed By Ghyath!</div>-->
+                <i @click="openUsersList=!openUsersList" class="fas fa-users">( {{users.length }} )</i>
                 <ul>
-                    <li>{{me.name}}</li>
-                    <li v-if="me.id != user.id" v-for="user in users">{{user.name}}</li>
+                    <div class="card w-100">
+                    <li>
+                        <div class="pl-1 w-100 card-header">
+                            <i class="far fa-user-circle"></i>
+                          {{me.name}}
+                        </div>
+                    </li>
+                    </div>
+                    <div class="card w-100">
+                        <div class="pl-1 w-100 card-header">
+                            <li v-if="me.id != user.id" v-for="user in users">
+                                <i class="far fa-user-circle"></i>
+                                {{user.name}}<i @click="sendRequest(user.id)" class="float-right  fas fa-plus"></i>
+                            </li> 
+                        </div>
+                    </div>
                 </ul>
             </div>
-            <div class="box" id="box">
-                <span class="oneword" :class="['word'+index,{'highlight':highlighted == index},{'wrong':wrong==index}]"  v-for="word,index in words">{{word}}</span>
+            <div id="battle-ground" v-if="isConnect">
+                <div class="box" id="box">
+                    <span class="oneword" :class="['word'+index,{'highlight':highlighted == index},{'wrong':wrong==index}]"  v-for="word,index in words">{{word}}</span>
+                </div>
+                <input @keyup="tracking($event)" v-model="input" id="input" type="text" class="m-auto w-100 form-control" placeholder="Type here">
             </div>
-            <input @keyup="tracking($event)" v-model="input" id="input" type="text" class="m-auto w-100 form-control" placeholder="Type here">
         </div>
         <footer>
             <center>Created by Ghyath Darwish!</center>
@@ -37,6 +54,7 @@
             height:100vh;
         }
             .box{
+                margin-top:100px;
                 width:100%;
                 border:1px solid #000;
             }
@@ -56,21 +74,40 @@
                 background:green !important;
             }
             .users-list{
-                background:red;
+                transition:.4s;
+                top:0;
+                background:#8fbc8fc2;
                 position:absolute;
-                width:40%;    
-                left: -40%;
+                width:60%;    
+                left: -60%;
             }
-            .users-list span{
+            .users-list > div{
+                font-size: 15px;
+                float: left;
+                color: white;
+            }
+            .users-list ul{
+                position:absolute;
+                width:100%;
+                margin:0;
+                padding:0;
+                list-style:none;
+            }
+            .users-list ul li{
+                color:black;
+            }
+            .users-list > i{
+                color: white;
                 position: relative;
                 float: right;
+                font-size: 20px;
                 display: block;
-                left: 32px;
-                padding: 10px;
+                left: 91px;
+                padding: 16px;
                 background: darkseagreen;
             }
             .open-list{
-                
+                left:0 !important;
             }
             footer{
                 color:gray;

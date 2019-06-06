@@ -11,7 +11,8 @@ var app = new Vue({
     input:'',
     word:'',
     me:{},
-    users:[]
+    users:[],
+    isConnect:false
     
   },
   created(){
@@ -22,6 +23,18 @@ var app = new Vue({
       var self = this;
       this.socket.on('send users',(users)=>{
         this.users = users;
+      });
+      this.socket.on('request from',(data)=>{
+         if(this.isConnect){
+            return false;
+         }
+        this.requestFrom(data);
+      });
+      this.socket.on('request accepted',(data)=>{
+        if(this.isConnect){
+          return false;
+        }
+        this.requestAccepted(data);
       })
       $('#input').on('textInput', e => {
            var keyCode = e.originalEvent.data.charCodeAt(0);
@@ -91,6 +104,24 @@ var app = new Vue({
       .catch(() => {
         console.log('Prompt dismissed');
       });
+    },
+    requestFrom(user){
+      var self = this;
+      this.$dialog
+        .confirm(user.name+' has request you challenge request',{okText:'Accept'})
+        .then(function(dialog) {
+          self.isConnect = true;
+          self.socket.emit('accepted',{me:self.me.id,user:user});
+        })
+        .catch(function() {
+          console.log('Clicked on cancel');
+        });
+    },
+    requestAccepted(user){
+        this.isConnect = true;
+    },
+    sendRequest(id){
+      this.socket.emit(`request to`,{id:id,me:this.me.id});
     }
   }
 })
