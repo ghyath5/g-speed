@@ -1,22 +1,29 @@
-var app = require('express')();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
-var redis = require('redis');
+var express = require('express');
+var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+var _ = require('lodash');
 
-server.listen(8082);
+app.use(express.static(__dirname + '/public'));
+app.get('/', function(req, res){
+  res.sendFile('/index.html',{root:__dirname});
+});
 
-io.on('connection', function (socket) {
-      var redisClient;
-      socket.on('new user',(data)=>{
-          redisClient = redis.createClient();
-          redisClient.subscribe(data.id);
-          redisClient.on("message", function(channel, message) {
-            socket.emit(channel,message)
-          });
-      });
+var users = [];
+
+io.on('connection', function(socket){
   
-  socket.on('disconnect', function() {
-    redisClient.quit();
+  socket.on('new user',(data,callback)=>{
+      users.push({id:socket.id,name:data.name});
+      socket.broadcast.emit('send users',users);
+      callback({me:{id:socket.id,name:data.name},users:users});
   });
+  socket.on('disconnect', function(){
+    _.remove(users, {id:socket.id});
+    socket.broadcast.emit('send users',users);
+  });
+});
 
+http.listen(8082, function(){
+  console.log('listening on *:8082');
 });

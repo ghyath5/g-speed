@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Title</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+        <script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css" />
+    </head>
+    <body>
+        <div id="app">
+            <div class="users-list" :class="{'open-list':openUsersList}">
+                <span class="oi oi-chevron-right"></span>
+                <ul>
+                    <li>{{me.name}}</li>
+                    <li v-if="me.id != user.id" v-for="user in users">{{user.name}}</li>
+                </ul>
+            </div>
+            <div class="box" id="box">
+                <span class="oneword" :class="['word'+index,{'highlight':highlighted == index},{'wrong':wrong==index}]"  v-for="word,index in words">{{word}}</span>
+            </div>
+            <input @keyup="tracking($event)" v-model="input" id="input" type="text" class="m-auto w-100 form-control" placeholder="Type here">
+        </div>
+        <footer>
+            <center>Created by Ghyath Darwish!</center>
+        </footer>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+        <script src="app.js"></script>
+        <style>
+        body{
+            height:100vh;
+        }
+            .box{
+                width:100%;
+                border:1px solid #000;
+            }
+            .oneword{
+                padding:20px;
+                display:inline-block;
+            }
+            .highlight{
+                background:gainsboro;
+            }
+            .wrong{
+                color:white;
+                background:red !important;
+            }
+            .correct{
+                color:white;
+                background:green !important;
+            }
+            .users-list{
+                background:red;
+                position:absolute;
+                width:40%;    
+                left: -40%;
+            }
+            .users-list span{
+                position: relative;
+                float: right;
+                display: block;
+                left: 32px;
+                padding: 10px;
+                background: darkseagreen;
+            }
+            .open-list{
+                
+            }
+            footer{
+                color:gray;
+                width:100%;
+                position:absolute;
+                bottom:0;
+            }
+        </style>
+    </body>
+</html>
