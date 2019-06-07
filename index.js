@@ -14,17 +14,20 @@ var users = [];
 io.on('connection', function(socket){
   
   socket.on('new user',(data,callback)=>{
-      users.push({id:socket.id,name:data.name});
+      users.push({id:socket.id,name:data.name,available:true});
       socket.broadcast.emit('send users',users);
       callback({me:{id:socket.id,name:data.name},users:users});
   });
   
   socket.on(`request to`,(data)=>{
-    io.sockets.connected[data.id].emit('request from',_.find(users,{id:data.me}));
+    io.sockets.connected[data.id].emit('request from',{lang:data.lang,user:_.find(users,{id:data.me})});
   })
   
   socket.on('accepted',(data)=>{
     socket.join(`${data.user.id}`);
+    _.set(_.find(users,{id:data.me}),'available',false);
+    _.set(_.find(users,{id:data.user.id}),'available',false);
+    socket.emit('send users',users);
     io.sockets.connected[data.user.id].emit('request accepted',_.find(users,{id:data.me}));
   })
   

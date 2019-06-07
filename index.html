@@ -5,17 +5,17 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <script
-  src="https://code.jquery.com/jquery-3.4.1.min.js"
-  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-  crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.js"></script>
-  <script src="https://kit.fontawesome.com/31f72831b4.js"></script>
-    </head>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.css">
+      <script src="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.js"></script>
+      <script src="https://kit.fontawesome.com/31f72831b4.js"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+     
+   </head>
     <body>
          <center>Created by Ghyath Darwish!</center>
         <div id="app">
+            <div v-if="layerWait" class="layer-wait"></div>
             <div v-if="!isConnect" class="users-list" :class="{'open-list':openUsersList}">
                 <!--<div>Developed By Ghyath!</div>-->
                 <i @click="openUsersList=!openUsersList" class="fas fa-users">( {{users.length }} )</i>
@@ -32,7 +32,9 @@
                         <div class="pl-1 w-100 card-header">
                             <li v-if="me.id != user.id" v-for="user in users">
                                 <i class="far fa-user-circle"></i>
-                                {{user.name}}<i @click="sendRequest(user.id)" class="float-right  fas fa-plus"></i>
+                                {{user.name}}
+                                <i v-if="user.available" @click="sendRequest(user.id)" class="float-right  fas fa-plus"></i>
+                                <i v-else class="float-right fas fa-lock"></i>
                             </li> 
                         </div>
                     </div>
@@ -46,13 +48,12 @@
             </div>
             
             <div id="battle-ground" v-show="isConnect">
-                <div class="box" id="box">
+                <div :class="[{'rtl':lang=='ar'}]" class="text-center box" id="box">
                     <span class="oneword" :class="['word'+index,{'highlight':highlighted == index},{'wrong':wrong==index}]"  v-for="word,index in words">{{word}}</span>
                 </div>
-                <input :class="{'bk-wrong':wrong!=null}" @keyup="tracking($event)" v-model="input" id="input" type="text" class="m-auto w-100 form-control" placeholder="Type here">
+                <input :class="[{'bk-wrong':wrong!=null},{'rtl':lang=='ar'}]" @keyup="tracking($event)" v-model="input" id="input" type="text" class="m-auto w-100 form-control" placeholder="Type here">
             </div>
         </div>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
         <script src="app.js"></script>
         <style>
         body{
@@ -61,13 +62,18 @@
             .box{
                 width:100%;
                 border:1px solid #000;
-                max-height:100px;
-                overflow:auto;
             }
+            .box::-webkit-scrollbar { width: 0 !important }
+            .box { overflow: -moz-scrollbars-none; }
+            .box { -ms-overflow-style: none; }
             .oneword{
                 font-weight:bold;
-                padding:20px;
+                font-size:70%;
+                padding:5px;
                 display:inline-block;
+            }
+            .rtl{
+                direction:rtl !important;
             }
             .highlight{
                 background:gainsboro;
@@ -125,6 +131,14 @@
                 min-height:150px;
                 margin-bottom:5px;
                 border:1px dashed #000;
+            }
+            .layer-wait{
+                top:0;
+                left:0;
+                position:absolute;
+                width:100%;
+                height:100vh;
+                background:#00000030;
             }
         </style>
     </body>

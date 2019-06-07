@@ -6,22 +6,28 @@ var app = new Vue({
     highlighted:0,
     wrong:null,
     sensitive:false,
-    openUsersList:false,
-    words:[
-    'quick','arrive','number','study','need','above','only','use','example','show','later','quickly','that','it\'s','enough','write',
-    'very','Indian','thought','own','people','over','should','letter','for','school','long','still','quite','should'],
+    openUsersList:true,
+    words:["واين", "روني", "هو", "لاعب", "كرة", "قدم", "إنجليزي،", "لعب", "أول", "مباراة", "له", "مع", "المنتخب", "الإنجليزي", "في", "13", "فبراير", "2003،", "عندما", "هزم", "الأخير", "بنتيجة", "3-1", "أمام", "أستراليا.", "سجل", "أول", "هدف", "دولي", "له", "في", "وقت", "لاحق", "من", "ذلك", "العام،", "في", "ظهوره", "السادس", "مع", "بلده"],
     input:'',
     word:'',
     me:{},
     users:[],
     isConnect:false,
-    counted:0
+    writingSound:null,
+    wrongSound:null,
+    lang:'ar',
+    langs:{'ar':'Arabic','en':'english'},
+    timer:5,
+    layerWait:false
     
   },
   created(){
      this.socket = io();
   },
   mounted(){
+    
+      this.writingSound = new Audio('sounds/key.mp3');
+      this.wrongSound = new Audio('sounds/wrong.mp3')
       this.prompt();
       var self = this;
       this.socket.on('send users',(users)=>{
@@ -59,15 +65,8 @@ var app = new Vue({
           $('.word'+this.highlighted).css({'color':'green'});
           self.input = '';
           self.highlighted++;
-          self.counted++;
        }else{
           $('.word'+this.highlighted).css({'color':'red'});
-       }
-       if(this.counted == 4){
-          $('.box').animate({scrollTop:$('.box').scrollTop()+65}, 500, 'swing', function() { 
-            // alert("Finished animating");
-            self.counted = 0;
-          });
        }
     },
     tracking(e){
@@ -75,14 +74,18 @@ var app = new Vue({
            return false;
       }
       if(e.keyCode != 32){
+        this.writingSound.currentTime = 0;
+        this.wrongSound.currentTime = 0;
         var word = this.words[this.highlighted];
         var length = this.input.length;
         this.isSens();
-        if(this.word.substring(0,length) == this.input){
+        if((this.word.substring(0,length) == this.input)){
           $('.word'+this.highlighted).html("<span class='correct'>"+this.word.substring(0,length)+"</span>"+this.word.substring(length,this.word.length))
           this.wrong = null;
+          this.writingSound.play();
         }else{
           this.wrong = this.highlighted;
+          this.wrongSound.play();
         }
       }
     },
@@ -115,23 +118,45 @@ var app = new Vue({
         console.log('Prompt dismissed');
       });
     },
-    requestFrom(user){
+    requestFrom(data){
       var self = this;
       this.$dialog
-        .confirm(user.name+' sent you a challenge request',{okText:'Accept'})
+        .confirm(data.user.name+' sent you an '+self.langs[data.lang]+' challenge request',{okText:'Accept'})
         .then(function(dialog) {
-          self.isConnect = true;
-          self.socket.emit('accepted',{me:self.me.id,user:user});
+          self.lang = data.lang;
+          self.socket.emit('accepted',{me:self.me.id,user:data.user});
+          self.requestAccepted();
         })
         .catch(function() {
-          console.log('Clicked on cancel');
+          self.socket.emit('rejected',{me:self.me.id,user:data.user});
         });
     },
     requestAccepted(user){
+        
+        var self = this;
         this.isConnect = true;
+        this.layerWait = true;
+        setInterval(()=>{
+          self.timer--;
+          if(self.timer == 0){
+            this.layerWait = false;
+          }
+        },1000);
+        
+        
     },
     sendRequest(id){
-      this.socket.emit(`request to`,{id:id,me:this.me.id});
+      var self = this;
+      this.$dialog
+        .confirm('Which language do you want to type?',{okText:'عربي',cancelText:'English'})
+        .then(function(dialog) {
+          self.lang = 'ar';
+          self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'ar'});
+        }).catch(function() {
+          self.lang = 'en';
+          self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'en'});
+        });
+      // 
     }
   }
 })
