@@ -50,9 +50,6 @@ var app = new Vue({
         this.requestAccepted(data);
       });
       this.socket.on('resulting',(data)=>{
-        var p = $( ".player-"+data.user.id );
-        var position = p.position();
-        console.log(position.left);
         $(".player-"+data.user.id).css('left',((data.result/self.words.length)*100)+'%');
       });
       
@@ -75,7 +72,7 @@ var app = new Vue({
        if(this.word == this.input){
           $('.word'+this.highlighted).css({'color':'green'});
           self.input = '';
-          self.socket.emit('walking',{roomName:self.roomName,user:self.player,result:self.highlighted+1});
+          self.socket.emit('walking',{roomName:self.roomName,me:self.me,result:self.highlighted+1});
           self.highlighted++;
        }else{
           $('.word'+this.highlighted).css({'color':'red'});

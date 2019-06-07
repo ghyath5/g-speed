@@ -45,7 +45,7 @@ io.on('connection', function(socket){
   })
   
   socket.on('walking',(data)=>{
-        io.to(`${data.roomName}`).emit('resulting',{user:data.user,result:data.result});
+        io.to(`${data.roomName}`).emit('resulting',{user:data.me,result:data.result});
   });
   
   socket.on('disconnect', function(){
