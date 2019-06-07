@@ -75,6 +75,7 @@ var app = new Vue({
           self.input = '';
           self.socket.emit('walking',{roomName:self.roomName,me:self.me,result:self.highlighted+1});
           self.highlighted++;
+          console.log(((self.highlighted/self.words.length)*100))
           if(((self.highlighted/self.words.length)*100) == 100){
             self.$dialog.alert('Congratulations, You have finished!').then(function(dialog) {
               console.log('Closed');
