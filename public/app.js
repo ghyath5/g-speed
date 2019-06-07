@@ -18,14 +18,14 @@ var app = new Vue({
     lang:'ar',
     langs:{'ar':'Arabic','en':'english'},
     timer:5,
-    layerWait:false
+    layerWait:false,
+    players:[]
     
   },
   created(){
      this.socket = io();
   },
   mounted(){
-    
       this.writingSound = new Audio('sounds/key.mp3');
       this.wrongSound = new Audio('sounds/wrong.mp3')
       this.prompt();
@@ -132,7 +132,6 @@ var app = new Vue({
         });
     },
     requestAccepted(user){
-        
         var self = this;
         this.isConnect = true;
         this.layerWait = true;
@@ -142,8 +141,6 @@ var app = new Vue({
             this.layerWait = false;
           }
         },1000);
-        
-        
     },
     sendRequest(id){
       var self = this;
