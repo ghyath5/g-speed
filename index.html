@@ -1,21 +1,24 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Title</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+      <title>Title</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+      <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
       <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.css">
       <script src="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.js"></script>
       <script src="https://kit.fontawesome.com/31f72831b4.js"></script>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
-     
    </head>
     <body>
          <center>Created by Ghyath Darwish!</center>
         <div id="app">
-            <div v-if="layerWait" class="layer-wait"></div>
+            <div v-if="layerWait" class="layer-wait">
+                
+                <center class="timer">{{timer}}</center>
+                
+            </div>
             <div v-if="!isConnect" class="users-list" :class="{'open-list':openUsersList}">
                 <!--<div>Developed By Ghyath!</div>-->
                 <i @click="openUsersList=!openUsersList" class="fas fa-users">( {{users.length }} )</i>
@@ -43,7 +46,10 @@
             
             <div class="battle-top">
                 <div class="one-challenger" v-for="player in players">
-                    <div class="line-player"></div>
+                    <span>{{player.name}}</span>
+                    
+                    <div class="line-player"><i :class="'player-'+player.id" class="player fas fa-smile"></i></div>
+                    <div class="h-5"></div>
                 </div>
             </div>
             
@@ -61,7 +67,6 @@
         }
             .box{
                 width:100%;
-                border:1px solid #000;
             }
             .box::-webkit-scrollbar { width: 0 !important }
             .box { overflow: -moz-scrollbars-none; }
@@ -128,9 +133,9 @@
                 left:0 !important;
             }
             .battle-top{
+                padding:20px;
                 min-height:150px;
                 margin-bottom:5px;
-                border:1px dashed #000;
             }
             .layer-wait{
                 top:0;
@@ -139,6 +144,22 @@
                 width:100%;
                 height:100vh;
                 background:#00000030;
+            }
+            .player{
+                position:relative;
+            }
+            .line-player{
+                position:absolute;
+                width:90%;
+                border:1px dotted #000;
+            }
+            .h-5{
+                height:26px;
+            }
+            .timer{
+                font-size:40px;
+                position:relative;
+                top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%);
             }
         </style>
     </body>

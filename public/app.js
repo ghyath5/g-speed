@@ -7,7 +7,7 @@ var app = new Vue({
     wrong:null,
     sensitive:false,
     openUsersList:true,
-    words:["واين", "روني", "هو", "لاعب", "كرة", "قدم", "إنجليزي،", "لعب", "أول", "مباراة", "له", "مع", "المنتخب", "الإنجليزي", "في", "13", "فبراير", "2003،", "عندما", "هزم", "الأخير", "بنتيجة", "3-1", "أمام", "أستراليا.", "سجل", "أول", "هدف", "دولي", "له", "في", "وقت", "لاحق", "من", "ذلك", "العام،", "في", "ظهوره", "السادس", "مع", "بلده"],
+    words:["واين", "روني", "هو", "لاعب", "كرة", "قدم", "ولوره", "السادس", "مع", "بلده"],
     input:'',
     word:'',
     me:{},
@@ -19,7 +19,9 @@ var app = new Vue({
     langs:{'ar':'Arabic','en':'english'},
     timer:5,
     layerWait:false,
-    players:[]
+    players:[],
+    roomName:null,
+    player:null
     
   },
   created(){
@@ -43,8 +45,17 @@ var app = new Vue({
         if(this.isConnect){
           return false;
         }
+        this.player = data;
+        this.players.push(data);
         this.requestAccepted(data);
-      })
+      });
+      this.socket.on('resulting',(data)=>{
+        var p = $( ".player-"+data.user.id );
+        var position = p.position();
+        console.log(position.left);
+        $(".player-"+data.user.id).css('left',((data.result/self.words.length)*100)+'%');
+      });
+      
       $('#input').on('textInput', e => {
            var keyCode = e.originalEvent.data.charCodeAt(0);
            if(keyCode == 32){
@@ -64,6 +75,7 @@ var app = new Vue({
        if(this.word == this.input){
           $('.word'+this.highlighted).css({'color':'green'});
           self.input = '';
+          self.socket.emit('walking',{roomName:self.roomName,user:self.player,result:self.highlighted+1});
           self.highlighted++;
        }else{
           $('.word'+this.highlighted).css({'color':'red'});
@@ -124,7 +136,11 @@ var app = new Vue({
         .confirm(data.user.name+' sent you an '+self.langs[data.lang]+' challenge request',{okText:'Accept'})
         .then(function(dialog) {
           self.lang = data.lang;
-          self.socket.emit('accepted',{me:self.me.id,user:data.user});
+          self.socket.emit('accepted',{roomName:data.roomName,me:self.me.id,user:data.user});
+          self.player = data.user;
+          self.players.push(data.user);
+          self.players.push(self.me);
+          self.roomName = data.roomName;
           self.requestAccepted();
         })
         .catch(function() {
@@ -135,25 +151,32 @@ var app = new Vue({
         var self = this;
         this.isConnect = true;
         this.layerWait = true;
-        setInterval(()=>{
+        var timer = setInterval(()=>{
           self.timer--;
           if(self.timer == 0){
+            $('#input').focus();
             this.layerWait = false;
+            clearInterval(timer);
+            self.timer = 5;
           }
         },1000);
     },
     sendRequest(id){
       var self = this;
+      this.players.push(this.me);
       this.$dialog
         .confirm('Which language do you want to type?',{okText:'عربي',cancelText:'English'})
         .then(function(dialog) {
           self.lang = 'ar';
-          self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'ar'});
+          self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'ar'},function(res){
+            self.roomName = res.roomName;
+          });
         }).catch(function() {
           self.lang = 'en';
-          self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'en'});
+          self.socket.emit('request to',{id:id,me:self.me.id,lang:'en'},function(res){
+            self.roomName = res.roomName;
+          });
         });
-      // 
     }
   }
 })
