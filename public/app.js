@@ -7,12 +7,15 @@ var app = new Vue({
     wrong:null,
     sensitive:false,
     openUsersList:false,
-    words:['fai','aiea','ad'],
+    words:[
+    'quick','arrive','number','study','need','above','only','use','example','show','later','quickly','that','it\'s','enough','write',
+    'very','Indian','thought','own','people','over','should','letter','for','school','long','still','quite','should'],
     input:'',
     word:'',
     me:{},
     users:[],
-    isConnect:false
+    isConnect:false,
+    counted:0
     
   },
   created(){
@@ -46,20 +49,26 @@ var app = new Vue({
   },
   methods:{
     check(){
-      var self = this;
-      var wordslength = this.words.length;
-      if(this.highlighted >= this.words.length){
+       var self = this;
+       var wordslength = this.words.length;
+       if(this.highlighted >= this.words.length){
            return false;
-      }
+       }
        this.isSens();
        if(this.word == this.input){
-          $('.word'+this.highlighted).css({'background':'green','color':'white'});
+          $('.word'+this.highlighted).css({'color':'green'});
+          self.input = '';
+          self.highlighted++;
+          self.counted++;
        }else{
-          $('.word'+this.highlighted).css({'background':'red','color':'white'});
+          $('.word'+this.highlighted).css({'color':'red'});
        }
-        self.input = '';
-        self.highlighted+=1;
-      
+       if(this.counted == 4){
+          $('.box').animate({scrollTop:$('.box').scrollTop()+65}, 500, 'swing', function() { 
+            // alert("Finished animating");
+            self.counted = 0;
+          });
+       }
     },
     tracking(e){
       if(this.highlighted >= this.words.length){
@@ -70,6 +79,7 @@ var app = new Vue({
         var length = this.input.length;
         this.isSens();
         if(this.word.substring(0,length) == this.input){
+          $('.word'+this.highlighted).html("<span class='correct'>"+this.word.substring(0,length)+"</span>"+this.word.substring(length,this.word.length))
           this.wrong = null;
         }else{
           this.wrong = this.highlighted;
@@ -108,7 +118,7 @@ var app = new Vue({
     requestFrom(user){
       var self = this;
       this.$dialog
-        .confirm(user.name+' has request you challenge request',{okText:'Accept'})
+        .confirm(user.name+' sent you a challenge request',{okText:'Accept'})
         .then(function(dialog) {
           self.isConnect = true;
           self.socket.emit('accepted',{me:self.me.id,user:user});

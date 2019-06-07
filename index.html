@@ -14,8 +14,9 @@
   <script src="https://kit.fontawesome.com/31f72831b4.js"></script>
     </head>
     <body>
+         <center>Created by Ghyath Darwish!</center>
         <div id="app">
-            <div class="users-list" :class="{'open-list':openUsersList}">
+            <div v-if="!isConnect" class="users-list" :class="{'open-list':openUsersList}">
                 <!--<div>Developed By Ghyath!</div>-->
                 <i @click="openUsersList=!openUsersList" class="fas fa-users">( {{users.length }} )</i>
                 <ul>
@@ -37,16 +38,20 @@
                     </div>
                 </ul>
             </div>
-            <div id="battle-ground" v-if="isConnect">
+            
+            <div class="battle-top">
+                <div class="one-challenger">
+                    <div class="line-player"></div>
+                </div>
+            </div>
+            
+            <div id="battle-ground" v-show="isConnect">
                 <div class="box" id="box">
                     <span class="oneword" :class="['word'+index,{'highlight':highlighted == index},{'wrong':wrong==index}]"  v-for="word,index in words">{{word}}</span>
                 </div>
-                <input @keyup="tracking($event)" v-model="input" id="input" type="text" class="m-auto w-100 form-control" placeholder="Type here">
+                <input :class="{'bk-wrong':wrong!=null}" @keyup="tracking($event)" v-model="input" id="input" type="text" class="m-auto w-100 form-control" placeholder="Type here">
             </div>
         </div>
-        <footer>
-            <center>Created by Ghyath Darwish!</center>
-        </footer>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
         <script src="app.js"></script>
         <style>
@@ -54,11 +59,13 @@
             height:100vh;
         }
             .box{
-                margin-top:100px;
                 width:100%;
                 border:1px solid #000;
+                max-height:100px;
+                overflow:auto;
             }
             .oneword{
+                font-weight:bold;
                 padding:20px;
                 display:inline-block;
             }
@@ -66,12 +73,17 @@
                 background:gainsboro;
             }
             .wrong{
+                color:red !important;
+            }
+            .bk-wrong{
+                background:red;
+            }
+            .bk-wrong:focus{
+                background:red;
                 color:white;
-                background:red !important;
             }
             .correct{
-                color:white;
-                background:green !important;
+                color:green !important;
             }
             .users-list{
                 transition:.4s;
@@ -109,11 +121,10 @@
             .open-list{
                 left:0 !important;
             }
-            footer{
-                color:gray;
-                width:100%;
-                position:absolute;
-                bottom:0;
+            .battle-top{
+                min-height:150px;
+                margin-bottom:5px;
+                border:1px dashed #000;
             }
         </style>
     </body>
