@@ -3,7 +3,7 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var _ = require('lodash');
-
+var port = process.env.PORT || 80
 app.use(express.static(__dirname + '/public'));
 app.get('/', function(req, res){
   res.sendFile('/index.html',{root:__dirname});
@@ -37,6 +37,6 @@ io.on('connection', function(socket){
   });
 });
 
-http.listen(8080, function(){
-  console.log('listening on *:8082');
+http.listen(port, function(){
+  console.log('listening on *:'+port);
 });
