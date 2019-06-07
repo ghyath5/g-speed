@@ -7,7 +7,7 @@ var app = new Vue({
     wrong:null,
     sensitive:false,
     openUsersList:true,
-    words:["واين", "روني", "هو", "لاعب", "كرة", "قدم", "ولوره", "السادس", "مع", "بلده"],
+    words:["أن", "جزيرة", "من", "جزائر", "الهند", "التي", "تحت", "خط", "الاستواء", "وهي", "الجزيرة", "التي", "يتولد", "بها", "الإنسان", "من", "غير", "أم", "ولا", "أب", "وبها", "شجر", "يثمر", "نساء", "وهي", "التي", "ذكر", "المسعودي", "أنها", "جزيرة", "الوقواق", "لان", "تلك", "الجزيرة", "اعدل", "بقاع", "الأرض", "هواء", "أتممها", "لشروق", "النور", "الأعلى", "عليها", "استعدادً،", "وان", "كان", "ذلك", "خلاف", "ما", "يراه", "جمهور", "الفلاسفة"],
     input:'',
     word:'',
     me:{},
@@ -29,7 +29,7 @@ var app = new Vue({
   },
   mounted(){
       this.writingSound = new Audio('sounds/key.mp3');
-      this.wrongSound = new Audio('sounds/wrong.mp3')
+      // this.wrongSound = new Audio('sounds/wrong.mp3')
       this.prompt();
       var self = this;
       this.socket.on('send users',(users)=>{
@@ -84,7 +84,7 @@ var app = new Vue({
       }
       if(e.keyCode != 32){
         this.writingSound.currentTime = 0;
-        this.wrongSound.currentTime = 0;
+        // this.wrongSound.currentTime = 0;
         var word = this.words[this.highlighted];
         var length = this.input.length;
         this.isSens();
@@ -94,7 +94,7 @@ var app = new Vue({
           this.writingSound.play();
         }else{
           this.wrong = this.highlighted;
-          this.wrongSound.play();
+          // this.wrongSound.play();
         }
       }
     },
