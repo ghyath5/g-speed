@@ -50,7 +50,8 @@ var app = new Vue({
         this.requestAccepted(data);
       });
       this.socket.on('resulting',(data)=>{
-        $(".player-"+data.user.id).css('left',((data.result/self.words.length)*100)+'%');
+        var percentage =((data.result/self.words.length)*100);
+        $(".player-"+data.user.id).css('left',percentage+'%');
       });
       
       $('#input').on('textInput', e => {
@@ -74,6 +75,11 @@ var app = new Vue({
           self.input = '';
           self.socket.emit('walking',{roomName:self.roomName,me:self.me,result:self.highlighted+1});
           self.highlighted++;
+          if(((self.highlighted/self.words.length)*100) == 100){
+            self.$dialog.alert('Congratulations, You have finished!').then(function(dialog) {
+              console.log('Closed');
+            });
+          }
        }else{
           $('.word'+this.highlighted).css({'color':'red'});
        }
