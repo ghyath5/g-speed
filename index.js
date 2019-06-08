@@ -5,8 +5,8 @@ var io = require('socket.io')(http);
 var _ = require('lodash');
 const uuidv1 = require('uuid/v1');
 
-// var port = process.env.PORT || 8082;
-var port =  8082;
+var port = process.env.PORT || 8082;
+// var port =  8082;
 app.use(express.static(__dirname + '/public'));
 app.get('/', function(req, res){
   res.sendFile('/index.html',{root:__dirname});
