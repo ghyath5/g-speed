@@ -7,8 +7,9 @@ var app = new Vue({
     wrong:null,
     sensitive:false,
     openUsersList:true,
-    words:["ان", "جزيرة", "من", "جزائر", "الهند", "التي", "تحت", "خط", "الاستواء", "وهي", "الجزيرة", "التي", "يتولد", "بها", "الانسان", "من", "غير", "ام", "ولا", "اب", "وبها", "شجر", "يثمر", "نساء", "وهي", "التي", "ذكر", "المسعودي", "انها", "جزيرة", "الوقواق", "لان", "تلك", "الجزيرة", "اعدل", "بقاع", "الارض", "هواء", "اتممها", "لشروق", "النور", "الاعلى", "عليها", "كان", "ذلك", "خلاف", "ما", "يراه", "جمهور", "الفلاسفة"],
-    
+    words:[],
+    arabicWords:["ان", "جزيرة", "من", "جزائر", "الهند", "التي", "تحت", "خط", "الاستواء", "وهي", "الجزيرة", "التي", "يتولد", "بها", "الانسان", "من", "غير", "ام", "ولا", "اب", "وبها", "شجر", "يثمر", "نساء", "وهي", "التي", "ذكر", "المسعودي", "انها", "جزيرة", "الوقواق", "لان", "تلك", "الجزيرة", "اعدل", "بقاع", "الارض", "هواء", "اتممها", "لشروق", "النور", "الاعلى", "عليها", "كان", "ذلك", "خلاف", "ما", "يراه", "جمهور", "الفلاسفة"],
+    englishWords:["much", "four", "school", "grow", "name", "side", "small", "those", "any", "just", "just", "face", "new", "for", "girl", "letter", "good", "part", "long", "right", "line", "stop", "like", "example", "place", "first", "own", "question", "quickly", "need", "miss", "far", "any", "some", "these", "many", "then", "might", "carry", "may", "about"],
     input:'',
     word:'',
     me:{},
@@ -24,7 +25,8 @@ var app = new Vue({
     players:[],
     roomName:null,
     player:null,
-    nameIgnored:false
+    nameIgnored:false,
+    interval:null
     
   },
   created(){
@@ -51,6 +53,11 @@ var app = new Vue({
         this.requestFrom(data);
       });
       this.socket.on('set players',(data)=>{
+        if(this.lang == 'ar'){
+          this.words = this.arabicWords;
+        }else if(this.lang == 'en'){
+          this.words = this.englishWords;
+        }
         if(this.inMatch){
           return false;
         }
@@ -161,14 +168,16 @@ var app = new Vue({
         var self = this;
         this.layerWait = true;
         this.isConnect = true;
-        var timer = setInterval(()=>{
+        this.interval;
+        clearInterval(this.interval);
+        this.interval = setInterval(()=>{
           self.timer--;
           if(self.timer == 0){
             self.inMatch = true;
             self.socket.emit('set inMatch',{me:self.me});
             $('#input').focus();
             self.layerWait = false;
-            clearInterval(timer);
+            clearInterval(self.interval);
             self.timer = 10;
           }
         },1000);
