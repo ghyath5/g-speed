@@ -13,16 +13,18 @@ var app = new Vue({
     word:'',
     me:{},
     users:[],
+    inMatch:false,
     isConnect:false,
     writingSound:null,
     wrongSound:null,
     lang:'ar',
     langs:{'ar':'Arabic','en':'english'},
-    timer:5,
+    timer:10,
     layerWait:false,
     players:[],
     roomName:null,
-    player:null
+    player:null,
+    nameIgnored:false
     
   },
   created(){
@@ -33,23 +35,29 @@ var app = new Vue({
       // this.wrongSound = new Audio('sounds/wrong.mp3')
       this.prompt();
       var self = this;
+      setInterval(()=>{
+        if(!self.me.name && self.nameIgnored){
+          self.prompt();
+          self.nameIgnored = false;
+        }
+      },4000);
       this.socket.on('send users',(users)=>{
         this.users = users;
       });
       this.socket.on('request from',(data)=>{
-         if(this.isConnect){
+         if(this.inMatch){
             return false;
          }
         this.requestFrom(data);
       });
-      this.socket.on('request accepted',(data)=>{
-        if(this.isConnect){
+      this.socket.on('set players',(data)=>{
+        if(this.inMatch){
           return false;
         }
-        this.player = data;
-        this.players.push(data);
+        this.players = (data.players);
+        this.timer = 10;
         this.requestAccepted(data);
-      });
+      })
       this.socket.on('resulting',(data)=>{
         var percentage =((data.result/self.words.length)*100);
         $(".player-"+data.user.id).css('left',percentage+'%');
@@ -132,6 +140,7 @@ var app = new Vue({
         }
       })
       .catch(() => {
+        self.nameIgnored = true;
         console.log('Prompt dismissed');
       });
     },
@@ -141,12 +150,8 @@ var app = new Vue({
         .confirm(data.user.name+' sent you an '+self.langs[data.lang]+' challenge request',{okText:'Accept'})
         .then(function(dialog) {
           self.lang = data.lang;
-          self.socket.emit('accepted',{roomName:data.roomName,me:self.me.id,user:data.user});
-          self.player = data.user;
-          self.players.push(data.user);
-          self.players.push(self.me);
           self.roomName = data.roomName;
-          self.requestAccepted();
+          self.socket.emit('accepted',{req:data.req,roomName:data.roomName,me:self.me.id,user:data.user});
         })
         .catch(function() {
           self.socket.emit('rejected',{me:self.me.id,user:data.user});
@@ -154,21 +159,22 @@ var app = new Vue({
     },
     requestAccepted(user){
         var self = this;
-        this.isConnect = true;
         this.layerWait = true;
+        this.isConnect = true;
         var timer = setInterval(()=>{
           self.timer--;
           if(self.timer == 0){
+            self.inMatch = true;
+            self.socket.emit('set inMatch',{me:self.me});
             $('#input').focus();
-            this.layerWait = false;
+            self.layerWait = false;
             clearInterval(timer);
-            self.timer = 5;
+            self.timer = 10;
           }
         },1000);
     },
     sendRequest(id){
       var self = this;
-      this.players.push(this.me);
       this.$dialog
         .confirm('Which language do you want to type?',{okText:'عربي',cancelText:'English'})
         .then(function(dialog) {

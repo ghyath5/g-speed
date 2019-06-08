@@ -14,35 +14,62 @@ app.get('/', function(req, res){
 
 var users = [];
 
+
+
 io.on('connection', function(socket){
-  
+  function set_players(roomName){
+      io.of('/').adapter.clients([roomName], (err, clienters) => {
+          var clients = _.filter(users, (v) => _.includes(clienters,v.id));
+          io.to(`${roomName}`).emit('set players',{players:clients});
+      });
+  }
   socket.on('new user',(data,callback)=>{
-      users.push({id:socket.id,name:data.name,available:true});
+      users.push({id:socket.id,name:data.name,roomName:'',inRoom:false,inMatch:false});
       socket.broadcast.emit('send users',users);
       callback({me:{id:socket.id,name:data.name},users:users});
   });
   
   socket.on('request to',(data,callback)=>{
-    if(io.sockets.connected[data.id]){
-        var roomName = uuidv1();
-        socket.join(roomName);
-        io.sockets.connected[data.id].emit('request from',{roomName:roomName,lang:data.lang,user:_.find(users,{id:data.me})});
-    }
-    callback({roomName:roomName});
+    var user =  _.find(users,{id:data.id});
+     if(io.sockets.connected[data.id]){
+        if(!user.inRoom){
+            var roomName = uuidv1();
+            socket.join(roomName);
+            io.sockets.connected[data.id].emit('request from',{req:'ch',roomName:roomName,lang:data.lang,user:_.find(users,{id:data.me})});
+            callback({roomName:roomName});
+        }else{
+          io.sockets.connected[data.id].emit('request from',{req:'join',roomName:user.roomName,lang:data.lang,user:_.find(users,{id:data.me})});
+          callback({roomName:user.roomName});
+        }
+     }
   });
   
   socket.on('accepted',(data)=>{
-    socket.join(data.roomName);
-    _.set(_.find(users,{id:data.me}),'available',false);
-    _.set(_.find(users,{id:data.user.id}),'available',false);
-    socket.emit('send users',users);
-    if(io.sockets.connected[data.user.id]){
-      io.sockets.connected[data.user.id].emit('request accepted',_.find(users,{id:data.me}));
-    }else{
-      
-    }
+    _.set(_.find(users,{id:data.me}),'inRoom',true);
+    _.set(_.find(users,{id:data.user.id}),'inRoom',true);
+    _.set(_.find(users,{id:data.me}),'roomName',data.roomName);
+    _.set(_.find(users,{id:data.user.id}),'roomName',data.roomName);
     
+    if(data.req == 'join'){
+      var sc = io.sockets.connected[data.user.id];
+      if(sc){
+          sc.join(data.roomName);
+      }
+    }else{
+      socket.join(data.roomName);
+    }
+    set_players(data.roomName);
+    socket.emit('send users',users);
   })
+  
+  socket.on('set inMatch', (me)=>{
+    var client = _.find(users,{id:me.me.id});
+    _.set(client,'inMatch',true);
+    setTimeout(()=>{
+      socket.emit('send users',users);
+    },500);
+    
+  });
   
   socket.on('walking',(data)=>{
         io.to(`${data.roomName}`).emit('resulting',{user:data.me,result:data.result});

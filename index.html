@@ -41,8 +41,10 @@
                             <li v-if="me.id != user.id" v-for="user in users">
                                 <i class="far fa-user-circle"></i>
                                 {{user.name}}
-                                <i v-if="user.available" @click="sendRequest(user.id)" class="float-right  fas fa-plus"></i>
-                                <i v-else class="float-right fas fa-lock"></i>
+                                <i v-if="!user.inMatch && !user.inRoom"  @click="sendRequest(user.id)" class="float-right  fas fa-plus"></i>
+                                <i v-if="user.inMatch" class="float-right fas fa-lock"></i>
+                                <i v-if="!user.inMatch && user.inRoom"  @click="sendRequest(user.id)" class="float-right fas fa-restroom"></i>
+                                
                             </li> 
                         </div>
                     </div>
@@ -58,7 +60,7 @@
                 </div>
             </div>
             
-            <div id="battle-ground" v-show="isConnect">
+            <div id="battle-ground" v-show="inMatch">
                 <div :class="[{'rtl':lang=='ar'}]" class="text-center box" id="box">
                     <span class="oneword" :class="['word'+index,{'highlight':highlighted == index},{'wrong':wrong==index}]"  v-for="word,index in words">{{word}}</span>
                 </div>
