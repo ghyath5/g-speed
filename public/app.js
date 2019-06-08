@@ -18,6 +18,7 @@ var app = new Vue({
     isConnect:false,
     writingSound:null,
     wrongSound:null,
+    notifySound:null,
     lang:'ar',
     langs:{'ar':'Arabic','en':'english'},
     timer:10,
@@ -35,6 +36,7 @@ var app = new Vue({
   mounted(){
       this.writingSound = new Audio('sounds/key.mp3');
       // this.wrongSound = new Audio('sounds/wrong.mp3')
+      this.notifySound = new Audio('sounds/notify.mp3')
       this.prompt();
       var self = this;
       setInterval(()=>{
@@ -46,6 +48,12 @@ var app = new Vue({
       this.socket.on('send users',(users)=>{
         this.users = users;
       });
+      this.socket.on('rejected',(user)=>{
+        self.$dialog.alert(user.name+' reject your request',{okText:'Ok'}).then(function(dialog) {
+          console.log('Closed');
+        });
+      })
+      
       this.socket.on('request from',(data)=>{
          if(this.inMatch){
             return false;
@@ -153,15 +161,16 @@ var app = new Vue({
     },
     requestFrom(data){
       var self = this;
+      this.notifySound.play();
       this.$dialog
-        .confirm(data.user.name+' sent you an '+self.langs[data.lang]+' challenge request',{okText:'Accept'})
+        .confirm(data.user.name+' sent you an '+self.langs[data.lang]+' challenge request',{okText:'Accept',cancelText:'Reject'})
         .then(function(dialog) {
           self.lang = data.lang;
           self.roomName = data.roomName;
           self.socket.emit('accepted',{req:data.req,roomName:data.roomName,me:self.me.id,user:data.user});
         })
         .catch(function() {
-          self.socket.emit('rejected',{me:self.me.id,user:data.user});
+          self.socket.emit('rejected',{me:self.me,user:data.user});
         });
     },
     requestAccepted(user){

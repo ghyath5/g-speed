@@ -5,8 +5,8 @@ var io = require('socket.io')(http);
 var _ = require('lodash');
 const uuidv1 = require('uuid/v1');
 
-var port = process.env.PORT || 8082;
-// var port =  8082;
+// var port = process.env.PORT || 8082;
+var port =  8082;
 app.use(express.static(__dirname + '/public'));
 app.get('/', function(req, res){
   res.sendFile('/index.html',{root:__dirname});
@@ -65,14 +65,22 @@ io.on('connection', function(socket){
   socket.on('set inMatch', (me)=>{
     var client = _.find(users,{id:me.me.id});
     _.set(client,'inMatch',true);
+    
     setTimeout(()=>{
       socket.emit('send users',users);
-    },500);
+    },1000);
     
   });
   
   socket.on('walking',(data)=>{
         io.to(`${data.roomName}`).emit('resulting',{user:data.me,result:data.result});
+  });
+  
+  socket.on('rejected',(data)=>{
+      var sc = io.sockets.connected[data.user.id];
+      if(sc){
+          sc.emit('rejected',data.user)
+      }
   });
   
   socket.on('disconnect', function(){
