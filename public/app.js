@@ -52,7 +52,6 @@ var app = new Vue({
         }
       },4000);
       this.socket.on('send users',(users)=>{
-        console.log(users)
         this.users = users;
       });
       this.socket.on('rejected',(user)=>{
