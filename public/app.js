@@ -240,6 +240,7 @@ var app = new Vue({
       this.isPrompet = false;
       this.isConnect = false;
       this.inMatch = false;
+      this.words = [];
       this.socket.emit('play again',{roomName:self.roomName,me:self.me});
     }
     
