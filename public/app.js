@@ -8,25 +8,29 @@ var app = new Vue({
     sensitive:false,
     openUsersList:true,
     words:[],
-    arabicWords:["ان", "جزيرة", "من", "جزائر", "الهند", "التي", "تحت", "خط", "الاستواء", "وهي", "الجزيرة", "التي", "يتولد", "بها", "الانسان", "من", "غير", "ام", "ولا", "اب", "وبها", "شجر", "يثمر", "نساء", "وهي", "التي", "ذكر", "المسعودي", "انها", "جزيرة", "الوقواق", "لان", "تلك", "الجزيرة", "اعدل", "بقاع", "الارض", "هواء", "اتممها", "لشروق", "النور", "الاعلى", "عليها", "كان", "ذلك", "خلاف", "ما", "يراه", "جمهور", "الفلاسفة"],
+    arabicWords:["ذبحنا", "بقرتنا", "وذبحوا", "بقرة", "بورقبة", "طلعت", "مرقة", "بقرتنا", "أحسن", "من", "مرقة", "بقرة", "بورقبة", "ذبحنا", "قردنا", "وذبحتوا", "قردكم", "حطينا", "لحم", "قردنا", "في", "قدركم", "وحطيتوا", "لحم", "قردكم", "في", "قدرنا"],
     englishWords:["much", "four", "school", "grow", "name", "side", "small", "those", "any", "just", "just", "face", "new", "for", "girl", "letter", "good", "part", "long", "right", "line", "stop", "like", "example", "place", "first", "own", "question", "quickly", "need", "miss", "far", "any", "some", "these", "many", "then", "might", "carry", "may", "about"],
     input:'',
     word:'',
     me:{},
     users:[],
+    results:[],
     inMatch:false,
     isConnect:false,
-    writingSound:null,
-    wrongSound:null,
-    notifySound:null,
-    rejectedSound:null,
+    sounds:{
+        writingSound:null,
+        wrongSound:null,
+        notifySound:null,
+        rejectedSound:null,
+        winerSound:null,
+        finishSound:null
+    },
     lang:'ar',
     langs:{'ar':'Arabic','en':'english'},
-    timer:10,
+    timer:5,
     layerWait:false,
     players:[],
     roomName:null,
-    player:null,
     nameIgnored:false,
     interval:null,
     isPrompet:false
@@ -36,10 +40,12 @@ var app = new Vue({
      this.socket = io();
   },
   mounted(){
-      this.writingSound = new Audio('sounds/key.mp3');
+      this.sounds.writingSound = new Audio('sounds/key.mp3');
       // this.wrongSound = new Audio('sounds/wrong.mp3')
-      this.notifySound = new Audio('sounds/notify.mp3')
-      this.rejectedSound = new Audio('sounds/rejected.mp3')
+      this.sounds.notifySound = new Audio('sounds/notify.mp3')
+      this.sounds.rejectedSound = new Audio('sounds/rejected.mp3');
+      this.sounds.winerSound = new Audio('sounds/winer.mp3');
+      this.sounds.finishSound = new Audio('sounds/finishno.mp3');
       this.prompt();
       var self = this;
       setInterval(()=>{
@@ -49,14 +55,15 @@ var app = new Vue({
         }
       },4000);
       this.socket.on('send users',(users)=>{
+        console.log(users)
         this.users = users;
       });
       this.socket.on('rejected',(user)=>{
-        this.rejectedSound.play();
+        this.sounds.rejectedSound.play();
         self.$dialog.alert(user.name+' reject your request',{okText:'Ok'}).then(function(dialog) {
           console.log('Closed');
         });
-      })
+      });
       
       this.socket.on('request from',(data)=>{
          if(this.inMatch || this.isPrompet){
@@ -74,13 +81,25 @@ var app = new Vue({
           return false;
         }
         this.players = (data.players);
-        this.timer = 10;
+        this.timer = 5;
         this.requestAccepted(data);
-      })
+      });
       this.socket.on('resulting',(data)=>{
         var percentage =((data.result/self.words.length)*100);
         $(".player-"+data.user.id).css('left',percentage+'%');
       });
+      this.socket.on('send res',(data)=>{
+        this.results = data.users;
+        for(var user in data.users){
+          if(data.users[user].id == self.me.id && (self.results.length == 1)){
+            self.sounds.winerSound.play();
+            break;
+            return false;
+          }
+        }
+        this.sounds.finishSound.play();
+      });
+      
       
       $('#input').on('textInput', e => {
            var keyCode = e.originalEvent.data.charCodeAt(0);
@@ -103,11 +122,8 @@ var app = new Vue({
           self.input = '';
           self.socket.emit('walking',{roomName:self.roomName,me:self.me,result:self.highlighted+1});
           self.highlighted++;
-          console.log(((self.highlighted/self.words.length)*100))
           if(((self.highlighted/self.words.length)*100) == 100){
-            self.$dialog.alert('Congratulations, You have finished!').then(function(dialog) {
-              console.log('Closed');
-            });
+            self.socket.emit('send results',{me:self.me,roomName:self.roomName});
           }
        }else{
           $('.word'+this.highlighted).css({'color':'red'});
@@ -118,7 +134,7 @@ var app = new Vue({
            return false;
       }
       if(e.keyCode != 32){
-        this.writingSound.currentTime = 0;
+        this.sounds.writingSound.currentTime = 0;
         // this.wrongSound.currentTime = 0;
         var word = this.words[this.highlighted];
         var length = this.input.length;
@@ -126,7 +142,7 @@ var app = new Vue({
         if((this.word.substring(0,length) == this.input)){
           $('.word'+this.highlighted).html("<span class='correct'>"+this.word.substring(0,length)+"</span>"+this.word.substring(length,this.word.length))
           this.wrong = null;
-          this.writingSound.play();
+          this.sounds.writingSound.play();
         }else{
           this.wrong = this.highlighted;
           // this.wrongSound.play();
@@ -156,6 +172,8 @@ var app = new Vue({
             self.me = res.me;
             self.users = res.users;
           })
+        }else{
+          self.nameIgnored = true;
         }
       })
       .catch(() => {
@@ -165,7 +183,7 @@ var app = new Vue({
     },
     requestFrom(data){
       var self = this;
-      this.notifySound.play();
+      this.sounds.notifySound.play();
       this.isPrompet = true;
       this.$dialog
         .confirm(data.user.name+' sent you an '+self.langs[data.lang]+' challenge request',{okText:'Accept',cancelText:'Reject'})
@@ -194,7 +212,7 @@ var app = new Vue({
             $('#input').focus();
             self.layerWait = false;
             clearInterval(self.interval);
-            self.timer = 10;
+            self.timer = 5;
           }
         },1000);
     },
@@ -213,6 +231,23 @@ var app = new Vue({
             self.roomName = res.roomName;
           });
         });
+    },
+    playAgain(){
+      var self = this;
+      this.players = [];
+      this.results = [];
+      this.timer = 0;
+      this.highlighted = 0;
+      this.input = '';
+      this.word = null;
+      this.wrong = null;
+      this.layerWait = false;
+      this.roomName = null;
+      this.interval = null;
+      this.isPrompet = false;
+      this.isConnect = false;
+      this.inMatch = false;
+      this.socket.emit('play again',{roomName:self.roomName,me:self.me});
     }
   }
 })

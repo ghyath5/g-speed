@@ -13,13 +13,14 @@ app.get('/', function(req, res){
 });
 
 var users = [];
-
+var results = [];
 io.on('connection', function(socket){
-  function set_players(roomName){
-      io.of('/').adapter.clients([roomName], (err, clienters) => {
+  async function set_players(roomName){
+      await io.of('/').adapter.clients([roomName], (err, clienters) => {
           var clients = _.filter(users, (v) => _.includes(clienters,v.id));
           io.to(`${roomName}`).emit('set players',{players:clients});
       });
+      io.emit('send users',users);
   }
   socket.on('new user',(data,callback)=>{
       users.push({id:socket.id,name:data.name,roomName:'',inRoom:false,inMatch:false});
@@ -47,7 +48,6 @@ io.on('connection', function(socket){
     _.set(_.find(users,{id:data.user.id}),'inRoom',true);
     _.set(_.find(users,{id:data.me}),'roomName',data.roomName);
     _.set(_.find(users,{id:data.user.id}),'roomName',data.roomName);
-    
     if(data.req == 'join'){
       var sc = io.sockets.connected[data.user.id];
       if(sc){
@@ -57,17 +57,28 @@ io.on('connection', function(socket){
       socket.join(data.roomName);
     }
     set_players(data.roomName);
-    socket.emit('send users',users);
+    
   })
   
-  socket.on('set inMatch', (me)=>{
+  socket.on('set inMatch', async (me)=>{
     var client = _.find(users,{id:me.me.id});
-    _.set(client,'inMatch',true);
-    
-    setTimeout(()=>{
-      socket.emit('send users',users);
-    },1000);
-    
+    await _.set(client,'inMatch',true);
+   io.emit('send users',users);
+  });
+  
+  socket.on('send results',(data)=>{
+   var team = _.find(results,{roomName:data.roomName});
+   if(team){
+     _.update(team,'users',function(n){
+       n.push({id:data.me.id,name:data.me.name,level:n.length+1});
+       return n;
+     })
+   }else{
+     results.push({roomName:data.roomName,users:[{id:data.me.id,name:data.me.name,level:1}]});
+     var team = _.find(results,{roomName:data.roomName});
+   }
+   
+   io.to(`${data.roomName}`).emit('send res',{users:team.users});
   });
   
   socket.on('walking',(data)=>{
@@ -80,6 +91,14 @@ io.on('connection', function(socket){
           sc.emit('rejected',data.user)
       }
   });
+  
+  socket.on('play again', (data)=>{
+    var user =  _.find(users,{id:data.me.id});
+     _.set(user,'roomName','');
+     _.set(user,'inRoom',false);
+     _.set(user,'inMatch',false);
+    io.emit('send users',users);
+  })
   
   socket.on('disconnect', function(){
     _.remove(users, {id:socket.id});

@@ -24,6 +24,18 @@
                 <center class="timer">{{timer}}</center>
                 
             </div>
+            
+            <div class="results-dash w-50" v-if="results.length >0">
+               <center>Player's results</center>
+                <div class="card" v-for="result in results">
+                    <div class="card-header text-center">{{result.name}}</div>
+                    <div class="card-body">Rank: <span style="font-weight:bold">{{result.level}}</span><br>
+                        <div class="text-center win" v-if="result.level==1">Winner Winner chicken dinner</div>
+                    </div>
+                </div>
+                <center><button @click="playAgain()" class="btn btn-primary">Play again</button></center>
+            </div>
+            
             <div v-if="!isConnect" class="users-list" :class="{'open-list':openUsersList}">
                 <!--<div>Developed By Ghyath!</div>-->
                 <i @click="openUsersList=!openUsersList" class="fas fa-users">( {{users.length }} )</i>
@@ -32,7 +44,7 @@
                     <li>
                         <div class="pl-1 w-100 card-header">
                             <i class="far fa-user-circle"></i>
-                          {{me.name}}
+                          {{me.name}} <span class="color-orange">(You)</span>
                         </div>
                     </li>
                     </div>
@@ -60,7 +72,7 @@
                 </div>
             </div>
             
-            <div id="battle-ground" v-show="inMatch">
+            <div id="battle-ground" v-show="isConnect">
                 <div :class="[{'rtl':lang=='ar'}]" class="text-center box" id="box">
                     <span class="oneword" :class="['word'+index,{'highlight':highlighted == index},{'wrong':wrong==index}]"  v-for="word,index in words">{{word}}</span>
                 </div>
@@ -72,6 +84,14 @@
         body{
             height:100vh;
         }
+            .results-dash{
+                border-radius:15px;
+                margin:auto;
+            }
+            .results-dash .win{
+                font-weight:bold;
+                color:orange;
+            }
             .box{
                 width:100%;
             }
@@ -100,12 +120,16 @@
                 background:red;
                 color:white;
             }
+            .color-orange{
+                color:orange;
+            }
             .correct{
                 color:green !important;
             }
             .users-list{
                 transition:.4s;
                 top:0;
+                height:100vh;
                 background:#8fbc8fc2;
                 position:absolute;
                 width:60%;    
@@ -153,12 +177,16 @@
                 background:#00000030;
             }
             .player{
+                top: -12px;
                 position:relative;
+                color:green;
             }
             .line-player{
-                position:absolute;
-                width:90%;
-                border:1px dotted #000;
+                position: absolute;
+                width: 90%;
+                border: 1px dashed #dcd8d8;
+                height: 0;
+                margin-top: 10px;
             }
             .h-5{
                 height:26px;
