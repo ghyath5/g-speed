@@ -12,13 +12,17 @@ app.get('/', function(req, res){
   res.sendFile('/index.html',{root:__dirname});
 });
 
+var TextArray =["ذبحنا بقرتنا وذبحوا بقرة بورقبة طلعت مرقة بقرتنا أحسن من مرقة بقرة بورقبة ذبحنا قردنا وذبحتوا قردكم حطينا لحم قردنا في قدركم وحطيتوا لحم قردكم في قدرنا","هذا النص هو مثال لنص يمكن أن يستبدل في نفس المساحة لقد تم توليد هذا النص من مولد النص العربي حيث يمكنك أن تولد مثل هذا النص",
+"ستغني عن الاخر ولكن الذي يمكن ان يتبدل ويتعاقب على اوجه كثيرة وهو معنى الامتداد يشبه الصورة التي لسائر الاجسام ذوات الصور والذي يثبت على حال واحدة وهو الذي ينزل منزلة الطين في المثال المتقدم يشبه معنى الجسمية التي لسائر الاجسام ذوات الصور"];
+
 var users = [];
 var results = [];
 io.on('connection', function(socket){
   async function set_players(roomName){
       await io.of('/').adapter.clients([roomName], (err, clienters) => {
           var clients = _.filter(users, (v) => _.includes(clienters,v.id));
-          io.to(`${roomName}`).emit('set players',{players:clients});
+          var random = Math.floor(Math.random() * TextArray.length);
+          io.to(`${roomName}`).emit('set players',{players:clients,words:TextArray[random].split(' ')});
       });
       io.emit('send users',users);
   }

@@ -33,9 +33,9 @@
                         <div class="text-center win" v-if="result.level==1">Winner Winner chicken dinner</div>
                     </div>
                 </div>
-                <center><button @click="playAgain()" class="btn btn-primary">Play again</button></center>
+                
             </div>
-            
+            <center><button @click="playAgain()" class="btn btn-primary">Play again</button></center>
             <div v-if="!isConnect" class="users-list" :class="{'open-list':openUsersList}">
                 <!--<div>Developed By Ghyath!</div>-->
                 <i @click="openUsersList=!openUsersList" class="fas fa-users">( {{users.length }} )</i>

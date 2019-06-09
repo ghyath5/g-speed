@@ -8,7 +8,6 @@ var app = new Vue({
     sensitive:false,
     openUsersList:true,
     words:[],
-    arabicWords:["ذبحنا", "بقرتنا", "وذبحوا", "بقرة", "بورقبة", "طلعت", "مرقة", "بقرتنا", "أحسن", "من", "مرقة", "بقرة", "بورقبة", "ذبحنا", "قردنا", "وذبحتوا", "قردكم", "حطينا", "لحم", "قردنا", "في", "قدركم", "وحطيتوا", "لحم", "قردكم", "في", "قدرنا"],
     englishWords:["much", "four", "school", "grow", "name", "side", "small", "those", "any", "just", "just", "face", "new", "for", "girl", "letter", "good", "part", "long", "right", "line", "stop", "like", "example", "place", "first", "own", "question", "quickly", "need", "miss", "far", "any", "some", "these", "many", "then", "might", "carry", "may", "about"],
     input:'',
     word:'',
@@ -19,7 +18,6 @@ var app = new Vue({
     isConnect:false,
     sounds:{
         writingSound:null,
-        wrongSound:null,
         notifySound:null,
         rejectedSound:null,
         winerSound:null,
@@ -27,7 +25,7 @@ var app = new Vue({
     },
     lang:'ar',
     langs:{'ar':'Arabic','en':'english'},
-    timer:5,
+    timer:8,
     layerWait:false,
     players:[],
     roomName:null,
@@ -41,7 +39,6 @@ var app = new Vue({
   },
   mounted(){
       this.sounds.writingSound = new Audio('sounds/key.mp3');
-      // this.wrongSound = new Audio('sounds/wrong.mp3')
       this.sounds.notifySound = new Audio('sounds/notify.mp3')
       this.sounds.rejectedSound = new Audio('sounds/rejected.mp3');
       this.sounds.winerSound = new Audio('sounds/winer.mp3');
@@ -64,7 +61,6 @@ var app = new Vue({
           console.log('Closed');
         });
       });
-      
       this.socket.on('request from',(data)=>{
          if(this.inMatch || this.isPrompet){
             return false;
@@ -73,7 +69,7 @@ var app = new Vue({
       });
       this.socket.on('set players',(data)=>{
         if(this.lang == 'ar'){
-          this.words = this.arabicWords;
+          this.words = data.words;
         }else if(this.lang == 'en'){
           this.words = this.englishWords;
         }
@@ -81,7 +77,7 @@ var app = new Vue({
           return false;
         }
         this.players = (data.players);
-        this.timer = 5;
+        this.timer = 8;
         this.requestAccepted(data);
       });
       this.socket.on('resulting',(data)=>{
@@ -99,7 +95,6 @@ var app = new Vue({
         }
         this.sounds.finishSound.play();
       });
-      
       
       $('#input').on('textInput', e => {
            var keyCode = e.originalEvent.data.charCodeAt(0);
@@ -135,7 +130,6 @@ var app = new Vue({
       }
       if(e.keyCode != 32){
         this.sounds.writingSound.currentTime = 0;
-        // this.wrongSound.currentTime = 0;
         var word = this.words[this.highlighted];
         var length = this.input.length;
         this.isSens();
@@ -145,7 +139,6 @@ var app = new Vue({
           this.sounds.writingSound.play();
         }else{
           this.wrong = this.highlighted;
-          // this.wrongSound.play();
         }
       }
     },
@@ -212,7 +205,7 @@ var app = new Vue({
             $('#input').focus();
             self.layerWait = false;
             clearInterval(self.interval);
-            self.timer = 5;
+            self.timer = 8;
           }
         },1000);
     },
@@ -236,7 +229,7 @@ var app = new Vue({
       var self = this;
       this.players = [];
       this.results = [];
-      this.timer = 0;
+      this.timer = 8;
       this.highlighted = 0;
       this.input = '';
       this.word = null;
@@ -249,5 +242,6 @@ var app = new Vue({
       this.inMatch = false;
       this.socket.emit('play again',{roomName:self.roomName,me:self.me});
     }
+    
   }
 })
