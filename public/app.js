@@ -24,7 +24,7 @@ var app = new Vue({
         winerSound:null,
         finishSound:null
     },
-    lang:'ar',
+    lang:'',
     langs:{'ar':'Arabic','en':'english'},
     timer:8,
     layerWait:false,
@@ -33,7 +33,9 @@ var app = new Vue({
     nameIgnored:false,
     interval:null,
     isPrompet:false,
-    isWait:false
+    isWait:false,
+    hasSent:false,
+    noResponseTimer:null
     
   },
   created(){
@@ -59,12 +61,14 @@ var app = new Vue({
       this.socket.on('rejected',(user)=>{
         this.sounds.rejectedSound.play();
         this.isWait = false;
+        this.hasSent = false;
+        clearTimeout(this.noResponseTimer);
         self.$dialog.alert(user.name+' reject your request',{okText:'Ok'}).then(function(dialog) {
           console.log('Closed');
         });
       });
       this.socket.on('request from',(data)=>{
-         if(this.inMatch || this.isPrompet || this.isWait){
+         if(this.inMatch || this.isPrompet || this.isWait || (this.lang != '' && data.lang != this.lang)){
             return false;
          }
         this.requestFrom(data);
@@ -75,6 +79,8 @@ var app = new Vue({
           return false;
         }
         this.isWait = false;
+        this.hasSent = false;
+        clearTimeout(this.noResponseTimer);
         if(this.lang == 'ar'){
           this.words = data.words;
         }else if(this.lang == 'en'){
@@ -188,7 +194,10 @@ var app = new Vue({
           self.isPrompet = false;
           self.lang = data.lang;
           self.roomName = data.roomName;
-          self.socket.emit('accepted',{req:data.req,roomName:data.roomName,me:self.me.id,user:data.user});
+          if(!self.inMatch){
+            self.socket.emit('accepted',{req:data.req,roomName:data.roomName,me:self.me.id,user:data.user});
+          }
+          
         })
         .catch(function() {
           self.isPrompet = false;
@@ -215,20 +224,38 @@ var app = new Vue({
     },
     sendRequest(id){
       var self = this;
-      this.$dialog
-        .confirm('Which language do you want to type?',{okText:'عربي',cancelText:'English'})
-        .then(function(dialog) {
-          self.lang = 'ar';
-          self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'ar'},function(res){
-            self.roomName = res.roomName;
+      if(!this.hasSent){
+        
+        this.$dialog
+          .confirm('Which language do you want to type?',{okText:'عربي',cancelText:'English'})
+          .then(function(dialog) {
+            self.lang = 'ar';
+            self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'ar'},function(res){
+              self.roomName = res.roomName;
+            });
+            self.noResponseTimer = setTimeout(function(){
+              self.$dialog.alert('Your friend has no response',{okText:'Ok'}).then(function(dialog) {
+                console.log('Closed');
+              });
+              self.hasSent = false;
+              self.isWait = false;
+            },10000);
+          }).catch(function() {
+            self.lang = 'en';
+            self.socket.emit('request to',{id:id,me:self.me.id,lang:'en'},function(res){
+              self.roomName = res.roomName;
+            });
+            self.noResponseTimer = setTimeout(function(){
+              self.$dialog.alert('Your friend has no response',{okText:'Ok'}).then(function(dialog) {
+                console.log('Closed');
+              });
+              self.hasSent = false;
+              self.isWait = false;
+            },10000);
           });
-        }).catch(function() {
-          self.lang = 'en';
-          self.socket.emit('request to',{id:id,me:self.me.id,lang:'en'},function(res){
-            self.roomName = res.roomName;
-          });
-        });
-        this.isWait = true;
+          this.isWait = true;
+          this.hasSent = true;
+      }
     },
     playAgain(){
       var self = this;
@@ -239,6 +266,7 @@ var app = new Vue({
       this.highlighted = 0;
       this.input = '';
       this.word = null;
+      this.lang = '';
       this.wrong = null;
       this.layerWait = false;
       this.interval = null;

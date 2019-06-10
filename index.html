@@ -19,6 +19,7 @@
     <body>
          <center>Created by Ghyath Darwish!</center>
         <div id="app">
+            <div class="load" v-if="hasSent"><img src="img/load.gif"></div>
             <div v-if="layerWait" class="layer-wait">
                 
                 <center class="timer">{{timer}}</center>
@@ -106,6 +107,13 @@
             }
             .rtl{
                 direction:rtl !important;
+            }
+            .load{
+                position:absolute;
+                z-index:999;
+                width:100%;
+                margin:auto;
+                text-align:center;
             }
             .highlight{
                 background:gainsboro;
