@@ -9,6 +9,7 @@ var app = new Vue({
     openUsersList:true,
     words:[],
     englishWords:["much", "four", "school", "grow", "name", "side", "small", "those", "any", "just", "just", "face", "new", "for", "girl", "letter", "good", "part", "long", "right", "line", "stop", "like", "example", "place", "first", "own", "question", "quickly", "need", "miss", "far", "any", "some", "these", "many", "then", "might", "carry", "may", "about"],
+    // englishWords:['d'],
     input:'',
     word:'',
     me:{},
@@ -70,7 +71,7 @@ var app = new Vue({
         if(this.lang == 'ar'){
           this.words = data.words;
         }else if(this.lang == 'en'){
-          this.words = this.englishWords;
+          this.words = this.shuffle(this.englishWords);
         }
         if(this.inMatch){
           return false;
@@ -234,14 +235,16 @@ var app = new Vue({
       this.word = null;
       this.wrong = null;
       this.layerWait = false;
-      this.roomName = null;
       this.interval = null;
       this.isPrompet = false;
       this.isConnect = false;
       this.inMatch = false;
       this.words = [];
       this.socket.emit('play again',{roomName:self.roomName,me:self.me});
+      this.roomName = null;
+    },
+    shuffle(array) {
+      return array.sort(() => Math.random() - 0.5);
     }
-    
   }
 })
