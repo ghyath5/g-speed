@@ -32,7 +32,8 @@ var app = new Vue({
     roomName:null,
     nameIgnored:false,
     interval:null,
-    isPrompet:false
+    isPrompet:false,
+    isWait:false
     
   },
   created(){
@@ -57,24 +58,27 @@ var app = new Vue({
       });
       this.socket.on('rejected',(user)=>{
         this.sounds.rejectedSound.play();
+        this.isWait = false;
         self.$dialog.alert(user.name+' reject your request',{okText:'Ok'}).then(function(dialog) {
           console.log('Closed');
         });
       });
       this.socket.on('request from',(data)=>{
-         if(this.inMatch || this.isPrompet){
+         if(this.inMatch || this.isPrompet || this.isWait){
             return false;
          }
         this.requestFrom(data);
       });
       this.socket.on('set players',(data)=>{
+        
+        if(this.inMatch){
+          return false;
+        }
+        this.isWait = false;
         if(this.lang == 'ar'){
           this.words = data.words;
         }else if(this.lang == 'en'){
           this.words = this.shuffle(this.englishWords);
-        }
-        if(this.inMatch){
-          return false;
         }
         this.players = (data.players);
         this.timer = 8;
@@ -224,11 +228,13 @@ var app = new Vue({
             self.roomName = res.roomName;
           });
         });
+        this.isWait = true;
     },
     playAgain(){
       var self = this;
       this.players = [];
       this.results = [];
+      this.isWait = false;
       this.timer = 8;
       this.highlighted = 0;
       this.input = '';
