@@ -314,6 +314,7 @@ var app = new Vue({
               });
               self.noResponseTimer = setTimeout(function(){
                 Swal.fire('Cancelled','Your friend has no response','error');
+                self.isPrompet = false;
                 self.hasSent = false;
                 self.isWait = false;
                 self.lang = '';
@@ -327,6 +328,7 @@ var app = new Vue({
                 Swal.fire('Cancelled','Your friend has no response','error');
                 self.hasSent = false;
                 self.isWait = false;
+                self.isPrompet = false;
                 self.lang = '';
               },5000); 
         }
