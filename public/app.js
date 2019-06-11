@@ -270,8 +270,8 @@ var app = new Vue({
         }
       });
       this.noReqTime= setTimeout(()=>{
+        self.isPrompet = false;
         Swal.close(rq);
-        this.isPrompet = false;
       },5000)
     },
     btnStart(){
