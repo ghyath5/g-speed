@@ -76,7 +76,7 @@ var app = new Vue({
         this.hasSent = false;
         this.lang = '';
         clearTimeout(this.noResponseTimer);
-        Swal.fire("<span style='font-weight:bold;color:orange'>"+user.name+" </span> "+' rejected your request')
+        Swal.fire("<span style='font-weight:bold;color:orange'>"+user.name+ " </span> "+' rejected your request')
       });
       this.socket.on('request from',(data)=>{
          if(this.inMatch || this.isPrompet || this.isWait || (this.lang != '' && data.lang != this.lang)){
@@ -248,7 +248,7 @@ var app = new Vue({
       clearTimeout(this.noReqTime);
       var rq = Swal.fire({
         title: data.user.name,
-        text: "sent you an"+"<span>"+self.langs[data.lang]+"</span>"+" challenge request",
+        text: "sent you an "+self.langs[data.lang]+" challenge request",
         type: 'question',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
