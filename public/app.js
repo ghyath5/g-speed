@@ -1,4 +1,3 @@
-window.Vue.use(VuejsDialog.main.default)
 var app = new Vue({
   el: '#app',
   data: {
@@ -26,7 +25,7 @@ var app = new Vue({
     },
     lang:'',
     langs:{'ar':'Arabic','en':'english'},
-    timer:8,
+    timer:5,
     layerWait:false,
     players:[],
     roomName:null,
@@ -35,8 +34,9 @@ var app = new Vue({
     isPrompet:false,
     isWait:false,
     hasSent:false,
-    noResponseTimer:null
-    
+    noResponseTimer:null,
+    noReqTime:null,
+    isAdmin:false
   },
   created(){
      this.socket = io();
@@ -47,6 +47,13 @@ var app = new Vue({
       this.sounds.rejectedSound = new Audio('sounds/rejected.mp3');
       this.sounds.winerSound = new Audio('sounds/winer.mp3');
       this.sounds.finishSound = new Audio('sounds/finishno.mp3');
+      $('body').on('textInput','#input', e => {
+           var keyCode = e.originalEvent.data.charCodeAt(0);
+           if(keyCode == 32){
+             self.check();
+             return false;
+           }
+      });
       this.prompt();
       var self = this;
       setInterval(()=>{
@@ -58,14 +65,18 @@ var app = new Vue({
       this.socket.on('send users',(users)=>{
         this.users = users;
       });
+      this.socket.on('remove player',(user)=>{
+          this.players = this.players.filter((player)=>{
+            return player.id != user.id
+          })
+      });
       this.socket.on('rejected',(user)=>{
         this.sounds.rejectedSound.play();
         this.isWait = false;
         this.hasSent = false;
+        this.lang = '';
         clearTimeout(this.noResponseTimer);
-        self.$dialog.alert(user.name+' reject your request',{okText:'Ok'}).then(function(dialog) {
-          console.log('Closed');
-        });
+        Swal.fire("<span style='font-weight:bold;color:orange'>"+user.name+" </span> "+' rejected your request')
       });
       this.socket.on('request from',(data)=>{
          if(this.inMatch || this.isPrompet || this.isWait || (this.lang != '' && data.lang != this.lang)){
@@ -74,12 +85,12 @@ var app = new Vue({
         this.requestFrom(data);
       });
       this.socket.on('set players',(data)=>{
-        
         if(this.inMatch){
           return false;
         }
         this.isWait = false;
         this.hasSent = false;
+        this.isConnect = true;
         clearTimeout(this.noResponseTimer);
         if(this.lang == 'ar'){
           this.words = data.words;
@@ -87,8 +98,7 @@ var app = new Vue({
           this.words = this.shuffle(this.englishWords);
         }
         this.players = (data.players);
-        this.timer = 8;
-        this.requestAccepted(data);
+        this.timer = 5;
       });
       this.socket.on('resulting',(data)=>{
         var percentage =((data.result/self.words.length)*100);
@@ -105,16 +115,32 @@ var app = new Vue({
         }
         this.sounds.finishSound.play();
       });
-      
-      $('#input').on('textInput', e => {
-           var keyCode = e.originalEvent.data.charCodeAt(0);
-           if(keyCode == 32){
-             self.check();
-             return false;
-           }
-      })
+      this.socket.on('no admin',()=>{
+        this.isAdmin = false;
+      });
+      this.socket.on('start play',(data)=>{
+        this.isAdmin = false;
+        this.requestAccepted();
+      });
   },
   methods:{
+    playerChecker(player_id){
+      var is = false;
+      for(var user in this.users){
+        if(this.users[user].id == player_id){
+          is = true;
+        }
+      }
+      return is;
+    },
+    inArray(value,array){
+      for(var a in array){
+        if(value == array[a]){
+          return true;
+        }
+      }
+      return false;
+    },
     check(){
        var self = this;
        var wordslength = this.words.length;
@@ -123,8 +149,8 @@ var app = new Vue({
        }
        this.isSens();
        if(this.word == this.input){
-          $('.word'+this.highlighted).css({'color':'green'});
           self.input = '';
+          $('.word'+self.highlighted).css({'color':'green'});
           self.socket.emit('walking',{roomName:self.roomName,me:self.me,result:self.highlighted+1});
           self.highlighted++;
           if(((self.highlighted/self.words.length)*100) == 100){
@@ -161,100 +187,152 @@ var app = new Vue({
           this.input = this.input.trim();
         }
     },
+    setCookie(cname, cvalue, exdays) {
+      var d = new Date();
+      d.setTime(d.getTime() + (exdays*24*60*60*1000));
+      var expires = "expires="+ d.toUTCString();
+      document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    },
+    getCookie(cname) {
+      var name = cname + "=";
+      var decodedCookie = decodeURIComponent(document.cookie);
+      var ca = decodedCookie.split(';');
+      for(var i = 0; i <ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+          c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+          return c.substring(name.length, c.length);
+        }
+      }
+      return "";
+    },
     prompt(){
       var self = this;
-      this.$dialog
-      .prompt({
-        title: "What is your name?",
-        body: "We will use your name as your identity in our website",
-        promptHelp: 'Type in the box below and click "[+:okText]"'
-      },{okText:'Confirm'})
-      .then(dialog => {
-        if(dialog.data.trim() != ''){
-          self.socket.emit('new user',{name:dialog.data},function(res){
-            self.me = res.me;
-            self.users = res.users;
-          })
+      if(this.getCookie('name') != ''){
+        self.socket.emit('new user',{name:this.getCookie('name')},function(res){
+              self.me = res.me;
+              self.users = res.users;
+        })
+        return;
+      }
+      Swal.fire({
+        title: 'What is your name?',
+        input: 'text',
+        inputAttributes: {
+          autocapitalize: 'on'
+        },
+        showCancelButton: false,
+        confirmButtonText: 'Submit',
+      }).then((result) => {
+        if (result.value) {
+          if(result.value.trim() != ''){
+            this.setCookie('name',result.value,1);
+            self.socket.emit('new user',{name:result.value},function(res){
+              self.me = res.me;
+              self.users = res.users;
+            })
+          }else{
+            self.nameIgnored = true;
+          }
         }else{
           self.nameIgnored = true;
         }
-      })
-      .catch(() => {
-        self.nameIgnored = true;
-        console.log('Prompt dismissed');
       });
     },
     requestFrom(data){
       var self = this;
       this.sounds.notifySound.play();
       this.isPrompet = true;
-      this.$dialog
-        .confirm(data.user.name+' sent you an '+self.langs[data.lang]+' challenge request',{okText:'Accept',cancelText:'Reject'})
-        .then(function(dialog) {
+      clearTimeout(this.noReqTime);
+      var rq = Swal.fire({
+        title: data.user.name,
+        text: "sent you an"+"<span>"+self.langs[data.lang]+"</span>"+" challenge request",
+        type: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Accept',
+        cancelButtonText: 'Reject'
+      }).then((result) => {
+        if (result.value) {
           self.isPrompet = false;
+          self.isAdmin = true;
           self.lang = data.lang;
-          self.roomName = data.roomName;
+          self.roomName = data.roomName;          
           if(!self.inMatch){
             self.socket.emit('accepted',{req:data.req,roomName:data.roomName,me:self.me.id,user:data.user});
           }
-          
-        })
-        .catch(function() {
+        }else{
           self.isPrompet = false;
           self.socket.emit('rejected',{me:self.me,user:data.user});
-        });
+        }
+      });
+      this.noReqTime= setTimeout(()=>{
+        Swal.close(rq);
+        this.isPrompet = false;
+      },5000)
     },
-    requestAccepted(user){
+    btnStart(){
+      this.socket.emit('set inMatch',{roomName:this.roomName});
+    },
+    requestAccepted(){
         var self = this;
         this.layerWait = true;
-        this.isConnect = true;
+        this.inMatch = true;        
         this.interval;
         clearInterval(this.interval);
         this.interval = setInterval(()=>{
           self.timer--;
           if(self.timer == 0){
-            self.inMatch = true;
-            self.socket.emit('set inMatch',{me:self.me});
             $('#input').focus();
             self.layerWait = false;
             clearInterval(self.interval);
-            self.timer = 8;
+            self.timer = 5;
           }
         },1000);
     },
     sendRequest(id){
       var self = this;
       if(!this.hasSent){
-        
-        this.$dialog
-          .confirm('Which language do you want to type?',{okText:'عربي',cancelText:'English'})
-          .then(function(dialog) {
-            self.lang = 'ar';
-            self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'ar'},function(res){
-              self.roomName = res.roomName;
-            });
-            self.noResponseTimer = setTimeout(function(){
-              self.$dialog.alert('Your friend has no response',{okText:'Ok'}).then(function(dialog) {
-                console.log('Closed');
+          Swal.fire({
+          title: 'Request',
+          text: "Which language do you want to type?",
+          type: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#3085d6',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'عربي',
+          cancelButtonText: 'English'
+        }).then((result) => {
+          self.isAdmin = false;
+          if (result.value) {
+              self.lang = 'ar';
+              self.socket.emit(`request to`,{id:id,me:self.me.id,lang:'ar'},function(res){
+                self.roomName = res.roomName;
               });
-              self.hasSent = false;
-              self.isWait = false;
-            },10000);
-          }).catch(function() {
-            self.lang = 'en';
-            self.socket.emit('request to',{id:id,me:self.me.id,lang:'en'},function(res){
-              self.roomName = res.roomName;
-            });
-            self.noResponseTimer = setTimeout(function(){
-              self.$dialog.alert('Your friend has no response',{okText:'Ok'}).then(function(dialog) {
-                console.log('Closed');
+              self.noResponseTimer = setTimeout(function(){
+                Swal.fire('Cancelled','Your friend has no response','error');
+                self.hasSent = false;
+                self.isWait = false;
+                self.lang = '';
+              },5000);
+          }else{
+              self.lang = 'en';
+              self.socket.emit('request to',{id:id,me:self.me.id,lang:'en'},function(res){
+                self.roomName = res.roomName;
               });
-              self.hasSent = false;
-              self.isWait = false;
-            },10000);
-          });
-          this.isWait = true;
-          this.hasSent = true;
+              self.noResponseTimer = setTimeout(function(){
+                Swal.fire('Cancelled','Your friend has no response','error');
+                self.hasSent = false;
+                self.isWait = false;
+                self.lang = '';
+              },5000); 
+        }
+      });
+      this.isWait = true;
+      this.hasSent = true;
       }
     },
     playAgain(){
@@ -262,7 +340,7 @@ var app = new Vue({
       this.players = [];
       this.results = [];
       this.isWait = false;
-      this.timer = 8;
+      this.timer = 5;
       this.highlighted = 0;
       this.input = '';
       this.word = null;
@@ -276,6 +354,10 @@ var app = new Vue({
       this.words = [];
       this.socket.emit('play again',{roomName:self.roomName,me:self.me});
       this.roomName = null;
+      this.noResponseTimer = null;
+      this.noReqTime = null;
+      this.hasSent = false;
+      this.isAdmin = false;
     },
     shuffle(array) {
       return array.sort(() => Math.random() - 0.5);

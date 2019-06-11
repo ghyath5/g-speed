@@ -5,7 +5,7 @@ var io = require('socket.io')(http);
 var _ = require('lodash');
 const uuidv1 = require('uuid/v1');
 
-var port = process.env.PORT || 8082;
+var port = process.env.PORT || 80;
 // var port =  8082;
 app.use(express.static(__dirname + '/public'));
 app.get('/', function(req, res){
@@ -13,15 +13,15 @@ app.get('/', function(req, res){
 });
 
 var TextArray =[
-  "بهاد النص لا يمكن ان يكون هناك اي خطأ كما كان في السابق انه هذا هو الذي كان هو",
-  "عامل فيها سريع ما لا تتوتر على مهلك وشوي شوي طوول بالك لا تستعجل خلص عرفناك سريع",
+  "الصهيونية هي حركة ظاهرها ديني وباطنها سياسي عرقي تهدف الى جعل فلسطين وطنا قوميا لليهود كمرحلة اولى تمهيدا لاقامة اسرائيل الكبرى التي تتسع لكل يهود العالم",
+  "من نتائج حرب النكبة قيام دولة اسرائيل ودخولها هيئة الأمم وتهجير الكثير من الفلسطينيين نحو الدول العربية وتحويلهم الى لاجئين وقيام الدول العربية المجاورة لاسرائيل بعقد اتفاقيات الهدنة",
   "هيك نصوص صغيرة احلى هيك بحس انا يعني مجرد نص عادي واحساس بسيط بدي حطو برسم اللجنة",
-  "هاد النص فقط للوحوش السريعين يعني انت كشخص عادي ما لازم تكتبو لهاد طلاع اشرفلك",
   "يلي بيطلعلو هاد النص بكون حظو من السما لان قصير ومافي لا همزات ولا حركات"]
 
 var users = [];
 var results = [];
 io.on('connection', function(socket){
+ 
   function set_players(roomName){
       io.of('/').adapter.clients([roomName], (err, clienters) => {
           var clients = _.filter(users, (v) => _.includes(clienters,v.id));
@@ -30,6 +30,17 @@ io.on('connection', function(socket){
       });
       io.emit('send users',users);
   }
+   async function start_player(roomName){
+      await io.of('/').adapter.clients([roomName], (err, clienters) => {
+          var clients = _.filter(users, (v) => _.includes(clienters,v.id));
+          for(var client in clients){
+             _.set(clients[client],'inMatch',true);
+          }
+          io.to(`${roomName}`).emit('start play');
+      });
+      io.emit('send users',users);
+  }
+
   socket.on('new user',(data,callback)=>{
       users.push({id:socket.id,name:data.name,roomName:'',inRoom:false,inMatch:false});
       socket.broadcast.emit('send users',users);
@@ -60,18 +71,21 @@ io.on('connection', function(socket){
       var sc = io.sockets.connected[data.user.id];
       if(sc){
           sc.join(data.roomName);
+          io.of('/').adapter.clients([data.roomName], (err, clienters) => {
+              if(clienters[1] != data.me && clienters.length > 2){
+                socket.emit('no admin');
+              }
+          });
+          
       }
     }else{
       socket.join(data.roomName);
     }
     set_players(data.roomName);
-    
-  })
+  });
   
-  socket.on('set inMatch', async (me)=>{
-    var client = _.find(users,{id:me.me.id});
-    await _.set(client,'inMatch',true);
-   io.emit('send users',users);
+  socket.on('set inMatch', (data)=>{
+    start_player(data.roomName);
   });
   
   socket.on('send results',(data)=>{
@@ -96,7 +110,7 @@ io.on('connection', function(socket){
   socket.on('rejected',(data)=>{
       var sc = io.sockets.connected[data.user.id];
       if(sc){
-          sc.emit('rejected',data.user)
+          sc.emit('rejected',data.me)
       }
   });
   
@@ -105,18 +119,20 @@ io.on('connection', function(socket){
      _.set(user,'roomName','');
      _.set(user,'inRoom',false);
      _.set(user,'inMatch',false);
+     socket.broadcast.emit('remove player',user);
      socket.leave(data.roomName);
      setInterval(()=>{
          _.remove(results,function(n){
            return n.roomName == data.roomName;
          });
-     },1000*60)
+     },1000*60*3)
      io.emit('send users',users);
   })
   
   socket.on('disconnect', function(){
-    _.remove(users, {id:socket.id});
+    var user = _.remove(users, {id:socket.id});
     socket.broadcast.emit('send users',users);
+    socket.broadcast.emit('remove player',user);
   });
 });
 

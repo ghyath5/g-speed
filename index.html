@@ -7,23 +7,23 @@
       <meta name="author" content="Ghyath Darwish">
       <meta name="keywords" content="Ghyath Darwish,G-Speed,Speed up,typing,test,تحدي سرعة الكيبورد,الطباعة,سرعة الكتابة,تحدي أصدقائك">
       <meta name="description" content="Challenge your friends with this typing test, make your own room and start challenges">
-      <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-      <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-      <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.css">
-      <script src="https://cdn.jsdelivr.net/npm/vuejs-dialog@1.4.0/dist/vuejs-dialog.min.js"></script>
-      <script src="https://kit.fontawesome.com/31f72831b4.js"></script>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.dev.js"></script>
+      <!-- <script src="libraries/vue.js"></script> -->
+       <script src="libraries/vue.min.js"></script> 
+      <link   href="libraries/css/bootstrap.min.css" rel="stylesheet">
+      <script src="libraries/jquery-3.4.1.min.js"></script>
+      <script src="libraries/sweet2.min.js"></script>
+      <script src="libraries/fontawesome.js"></script>
+      <script src="libraries/socket.io.js"></script>
       
    </head>
     <body>
-         <center>Created by Ghyath Darwish!</center>
+        <center>Created by <span style='color:red'>Ghyath</span> Darwish!</center>
+        <hr />
         <div id="app">
             <div class="load" v-if="hasSent"><img src="img/load.gif"></div>
             <div v-if="layerWait" class="layer-wait">
                 
                 <center class="timer">{{timer}}</center>
-                
             </div>
             
             <div class="results-dash w-50" v-if="results.length >0">
@@ -36,49 +36,45 @@
                 </div>
                 
             </div>
-            <center><button @click="playAgain()" class="btn btn-primary">Play again</button></center>
-            <div v-if="!isConnect" class="users-list" :class="{'open-list':openUsersList}">
-                <!--<div>Developed By Ghyath!</div>-->
-                <i @click="openUsersList=!openUsersList" class="fas fa-users">( {{users.length }} )</i>
-                <ul>
-                    <div class="card w-100">
+            <center><button @click="playAgain()" v-if="isConnect" class="btn btn-primary">Play again</button></center>
+            <div v-if="!isConnect" class="card" :class="{'open-list':openUsersList}">
+                <div class="card-header text-center">Players Online ({{users.length }})</div>  
+                <ol>
                     <li>
-                        <div class="pl-1 w-100 card-header">
-                            <i class="far fa-user-circle"></i>
-                          {{me.name}} <span class="color-orange">(You)</span>
-                        </div>
+                        <i class="fa-2x far fa-user-circle"></i>
+                        {{me.name}} <span class="color-orange">(You)</span>
                     </li>
-                    </div>
-                    <div class="card w-100">
-                        <div class="pl-1 w-100 card-header">
-                            <li v-if="me.id != user.id" v-for="user in users">
-                                <i class="far fa-user-circle"></i>
-                                {{user.name}}
-                                <i v-if="!user.inMatch && !user.inRoom"  @click="sendRequest(user.id)" class="float-right  fas fa-plus"></i>
-                                <i v-if="user.inMatch" class="float-right fas fa-lock"></i>
-                                <i v-if="!user.inMatch && user.inRoom"  @click="sendRequest(user.id)" class="float-right fas fa-restroom"></i>
-                                
-                            </li> 
-                        </div>
-                    </div>
-                </ul>
+                    <hr/>
+                    <template v-if="me.id != user.id" v-for="user in users">
+                        <li  >
+                            <i class="fa-2x far fa-user-circle"></i>
+                            <span v-if="!user.inMatch" @click="sendRequest(user.id)" >{{user.name}}</span>
+                            <span v-else>{{user.name}}</span>
+                            <i v-if="!user.inMatch && !user.inRoom" @click="sendRequest(user.id)" class="float-right fas fa-plus p-2"></i>
+                            <i v-if="user.inMatch" class="float-right fas fa-lock p-2"></i>
+                            <i v-if="!user.inMatch && user.inRoom" @click="sendRequest(user.id)" class="p-2 float-right fas fa-restroom"></i>
+                        </li> 
+                        <hr/>
+                    </template>
+                </ol>
             </div>
-            
+           
             <div class="battle-top">
                 <div class="one-challenger" v-for="player in players">
-                    <span>{{player.name}}</span>
+                    <span v-if="playerChecker(player.id)">{{player.name}}</span>
                     
                     <div class="line-player"><i :class="'player-'+player.id" class="player fas fa-smile"></i></div>
                     <div class="h-5"></div>
                 </div>
             </div>
             
-            <div id="battle-ground" v-show="isConnect">
+            <div id="battle-ground" v-show="inMatch">
                 <div :class="[{'rtl':lang=='ar'}]" class="text-center box" id="box">
                     <span class="oneword" :class="['word'+index,{'highlight':highlighted == index},{'wrong':wrong==index}]"  v-for="word,index in words">{{word}}</span>
                 </div>
                 <input :class="[{'bk-wrong':wrong!=null},{'rtl':lang=='ar'}]" @keyup="tracking($event)" v-model="input" id="input" type="text" class="m-auto w-100 form-control" placeholder="Type here">
             </div>
+             <center v-if="isAdmin"><button @click="btnStart()" class="btn btn-success">Start</button></center>
         </div>
         <script src="app.js"></script>
         <style>
@@ -137,11 +133,7 @@
             .users-list{
                 transition:.4s;
                 top:0;
-                height:100vh;
-                background:#8fbc8fc2;
-                position:absolute;
-                width:60%;    
-                left: -60%;
+                height:100vh;   
             }
             .users-list > div{
                 font-size: 15px;
@@ -149,7 +141,6 @@
                 color: white;
             }
             .users-list ul{
-                position:absolute;
                 width:100%;
                 margin:0;
                 padding:0;
@@ -203,6 +194,11 @@
                 font-size:40px;
                 position:relative;
                 top: 50%; left: 50%; transform: translateX(-50%) translateY(-50%);
+            }
+            @media screen and (min-width: 500px){
+                .oneword{
+                    font-size:110%;
+                }
             }
         </style>
     </body>
