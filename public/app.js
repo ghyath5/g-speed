@@ -272,7 +272,7 @@ var app = new Vue({
       this.noReqTime= setTimeout(()=>{
         self.isPrompet = false;
         Swal.close(rq);
-      },5000)
+      },8000)
     },
     btnStart(){
       this.socket.emit('set inMatch',{roomName:this.roomName});
@@ -318,7 +318,7 @@ var app = new Vue({
                 self.hasSent = false;
                 self.isWait = false;
                 self.lang = '';
-              },5000);
+              },8000);
           }else{
               self.lang = 'en';
               self.socket.emit('request to',{id:id,me:self.me.id,lang:'en'},function(res){
@@ -330,7 +330,7 @@ var app = new Vue({
                 self.isWait = false;
                 self.isPrompet = false;
                 self.lang = '';
-              },5000); 
+              },8000); 
         }
       });
       this.isWait = true;
