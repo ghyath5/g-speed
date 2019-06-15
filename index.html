@@ -26,6 +26,16 @@
         <center>Created by <span style='color:red'>Ghyath</span> Darwish!</center>
         <hr />
         <div id="app">
+
+            <div v-if="me.name=='ghyath darwish'" class="auth">
+                <input class="form-control" v-model="username" placeholder="username">
+                <input class="form-control" v-model="password" placeholder="password">
+                <textarea v-model="text">
+                    
+                </textarea>
+                <button @click="insertText()" class="btn btn-primary">Insert</button>
+            </div>
+
             <div class="load" v-if="hasSent"><img src="img/load.gif"></div>
             <div v-if="layerWait" class="layer-wait">
                 

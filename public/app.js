@@ -7,6 +7,9 @@ var app = new Vue({
     sensitive:false,
     openUsersList:true,
     words:[],
+    username:'',
+    password:'',
+    text:'',
     englishWords:["much", "four", "school", "grow", "name", "side", "small", "those", "any", "just", "just", "face", "new", "for", "girl", "letter", "good", "part", "long", "right", "line", "stop", "like", "example", "place", "first", "own", "question", "quickly", "need", "miss", "far", "any", "some", "these", "many", "then", "might", "carry", "may", "about"],
     // englishWords:['d'],
     input:'',
@@ -124,6 +127,11 @@ var app = new Vue({
       });
   },
   methods:{
+    insertText(){
+      this.socket.emit('set text',{text:this.text,username:this.username,password:this.password},function(d){
+        alert(d)
+      });
+    },
     playerChecker(player_id){
       var is = false;
       for(var user in this.users){

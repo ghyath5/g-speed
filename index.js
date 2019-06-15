@@ -13,8 +13,7 @@ app.get('/', function(req, res){
 });
 
 var TextArray =[
-  "الصهيونية هي حركة ظاهرها ديني وباطنها سياسي عرقي تهدف الى جعل فلسطين وطنا قوميا لليهود كمرحلة اولى تمهيدا لاقامة اسرائيل الكبرى التي تتسع لكل يهود العالم",
-  "من نتائج حرب النكبة قيام دولة اسرائيل ودخولها هيئة الأمم وتهجير الكثير من الفلسطينيين نحو الدول العربية وتحويلهم الى لاجئين وقيام الدول العربية المجاورة لاسرائيل بعقد اتفاقيات الهدنة",
+  "شريف وشريفة شتروا شرشفان شرشف شريف اكبر من شرشف شريفة بشرشفين وشرشف",
   "هيك نصوص صغيرة احلى هيك بحس انا يعني مجرد نص عادي واحساس بسيط بدي حطو برسم اللجنة",
   "يلي بيطلعلو هاد النص بكون حظو من السما لان قصير ومافي لا همزات ولا حركات"]
 
@@ -40,7 +39,14 @@ io.on('connection', function(socket){
       });
       io.emit('send users',users);
   }
-
+  socket.on('set text',(data,callback)=>{
+    if(data.username == "GhAyAtH" && data.password == "GhGhGh"){
+      TextArray.push(data.text);
+      callback('done');
+    }else{
+      callback('err');
+    }
+  })
   socket.on('new user',(data,callback)=>{
       users.push({id:socket.id,name:data.name,roomName:'',inRoom:false,inMatch:false});
       socket.broadcast.emit('send users',users);
