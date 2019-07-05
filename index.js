@@ -45,7 +45,9 @@ io.on('connection', function(socket){
       });
       io.emit('send users',users);
   }
-  
+  socket.on('radio', function(data) {
+    io.to(data.roomName).emit('voice', data.blob);
+  });
   socket.on('set text',(data,callback)=>{
     if(data.username == "GhAyAtH" && data.password == "GhGhGh"){
       TextArray.push(data.text);
@@ -80,6 +82,7 @@ io.on('connection', function(socket){
     _.set(_.find(users,{id:data.user.id}),'inRoom',true);
     _.set(_.find(users,{id:data.me}),'roomName',data.roomName);
     _.set(_.find(users,{id:data.user.id}),'roomName',data.roomName);
+    
     if(data.req == 'join'){
       var sc = io.sockets.connected[data.user.id];
       if(sc){
@@ -93,9 +96,7 @@ io.on('connection', function(socket){
     }else{
       socket.join(data.roomName);
     }
-    socket.on('radio', function(blob) {
-      io.to(data.roomName).emit('voice', blob);
-    });
+    
     set_players(data.roomName);
   });
   
