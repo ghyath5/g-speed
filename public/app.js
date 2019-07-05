@@ -106,6 +106,7 @@ var app = new Vue({
         }else if(this.lang == 'en'){
           this.words = this.shuffle(this.englishWords);
         }
+        this.getUserMedia();
         this.players = (data.players);
         this.timer = 5;
         
@@ -156,7 +157,7 @@ var app = new Vue({
         setInterval(function() {
             mediaRecorder.stop();
             mediaRecorder.start();
-          }, 1000);
+          }, 900);
         });
     },
 
@@ -303,7 +304,6 @@ var app = new Vue({
           self.lang = data.lang;
           self.roomName = data.roomName;          
           if(!self.inMatch){
-            self.getUserMedia();
             self.socket.emit('accepted',{req:data.req,roomName:data.roomName,me:self.me.id,user:data.user});
           }
         }else{
@@ -338,7 +338,6 @@ var app = new Vue({
     sendRequest(id){
       var self = this;
       if(!this.hasSent){
-          this.getUserMedia();
           Swal.fire({
           title: 'Request',
           text: "Which language do you want to type?",
