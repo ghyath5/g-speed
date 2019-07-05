@@ -89,13 +89,12 @@ io.on('connection', function(socket){
                 socket.emit('no admin');
               }
           });
-          
       }
     }else{
       socket.join(data.roomName);
     }
     socket.on('radio', function(blob) {
-      socket.to(data.roomName).emit('voice', blob);
+      io.to(data.roomName).emit('voice', blob);
     });
     set_players(data.roomName);
   });
