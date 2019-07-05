@@ -110,8 +110,8 @@ var app = new Vue({
         }else if(this.lang == 'en'){
           this.words = this.shuffle(this.englishWords);
         }
-        if(this.openMic){this.getUserMedia()};
         
+        this.getUserMedia()
         this.players = (data.players);
         this.timer = 5;
         
@@ -153,7 +153,7 @@ var app = new Vue({
             };
             mediaRecorder.onstop = function(e) {
                 var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
-                if(self.openVoice){
+                if(self.openMic){
                   self.socket.emit('radio', {roomName:self.roomName,blob:blob});
                 }
             };
