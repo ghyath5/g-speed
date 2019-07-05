@@ -49,7 +49,7 @@ var app = new Vue({
   mounted(){
       var self = this;
       this.socket.on('voice', function(arrayBuffer) {
-          if(this.openVoice){
+          if(self.openVoice){
               var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
               var audio = document.createElement('audio');
               audio.src = window.URL.createObjectURL(blob);
@@ -111,7 +111,7 @@ var app = new Vue({
           this.words = this.shuffle(this.englishWords);
         }
         
-        this.getUserMedia()
+        this.getUserMedia();
         this.players = (data.players);
         this.timer = 5;
         
