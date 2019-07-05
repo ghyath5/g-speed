@@ -46,7 +46,7 @@ io.on('connection', function(socket){
       io.emit('send users',users);
   }
   socket.on('radio', function(data) {
-    socket.to(data.roomName).emit('voice', data.blob);
+    io.to(data.roomName).emit('voice', data.blob);
   });
   socket.on('set text',(data,callback)=>{
     if(data.username == "GhAyAtH" && data.password == "GhGhGh"){
