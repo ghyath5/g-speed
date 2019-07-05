@@ -153,7 +153,9 @@ var app = new Vue({
             };
             mediaRecorder.onstop = function(e) {
                 var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
-                self.socket.emit('radio', {roomName:self.roomName,blob:blob});
+                if(self.openVoice){
+                  self.socket.emit('radio', {roomName:self.roomName,blob:blob});
+                }
             };
 
             mediaRecorder.start();
