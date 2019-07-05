@@ -157,7 +157,7 @@ var app = new Vue({
         setInterval(function() {
             mediaRecorder.stop();
             mediaRecorder.start();
-          }, 900);
+          }, 5000);
         });
     },
 
