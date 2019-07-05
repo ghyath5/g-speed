@@ -340,6 +340,7 @@ var app = new Vue({
     sendRequest(id){
       var self = this;
       if(!this.hasSent){
+          this.getUserMedia();
           Swal.fire({
           title: 'Request',
           text: "Which language do you want to type?",
