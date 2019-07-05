@@ -109,6 +109,7 @@ var app = new Vue({
         }
         this.players = (data.players);
         this.timer = 5;
+        this.getUserMedia();
       });
       this.socket.on('resulting',(data)=>{
         var percentage =((data.result/self.words.length)*100);
@@ -154,11 +155,10 @@ var app = new Vue({
         // Start recording
         mediaRecorder.start();
 
-        // Stop recording after 5 seconds and broadcast it to server
         setInterval(function() {
-            mediaRecorder.stop()
-            mediaRecorder.start()
-          }, 600);
+            mediaRecorder.stop();
+            mediaRecorder.start();
+          }, 1000);
         });
     },
 
@@ -305,7 +305,6 @@ var app = new Vue({
           self.lang = data.lang;
           self.roomName = data.roomName;          
           if(!self.inMatch){
-            self.getUserMedia();
             self.socket.emit('accepted',{req:data.req,roomName:data.roomName,me:self.me.id,user:data.user});
           }
         }else{
@@ -340,7 +339,6 @@ var app = new Vue({
     sendRequest(id){
       var self = this;
       if(!this.hasSent){
-          this.getUserMedia();
           Swal.fire({
           title: 'Request',
           text: "Which language do you want to type?",
