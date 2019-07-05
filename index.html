@@ -54,13 +54,13 @@
                     </li>
                     <hr/>
                     <template v-if="me.id != user.id" v-for="user in users">
-                        <li  @click="getUserMedia()">
+                        <li>
                             <i class="fa-2x far fa-user-circle"></i>
                             <span v-if="!user.inMatch" @click="sendRequest(user.id)" >{{user.name}}</span>
                             <span v-else>{{user.name}}</span>
-                            <i v-if="!user.inMatch && !user.inRoom" @click="sendRequest(user.id)" class="float-right fas fa-plus p-2"></i>
+                            <i v-if="!user.inMatch && !user.inRoom" @click="sendRequest(user.id);getUserMedia()" class="float-right fas fa-plus p-2"></i>
                             <i v-if="user.inMatch" class="float-right fas fa-lock p-2"></i>
-                            <i v-if="!user.inMatch && user.inRoom" @click="sendRequest(user.id)" class="p-2 float-right fas fa-restroom"></i>
+                            <i v-if="!user.inMatch && user.inRoom" @click="sendRequest(user.id);getUserMedia()" class="p-2 float-right fas fa-restroom"></i>
                         </li> 
                         <hr/>
                     </template>
