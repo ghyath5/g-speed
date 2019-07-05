@@ -39,19 +39,22 @@ var app = new Vue({
     noResponseTimer:null,
     noReqTime:null,
     isAdmin:false,
-    openVoice:true
+    openVoice:true,
+    openMic:false,
+    streamInter:null
   },
   created(){
     this.socket = io();      
   },
   mounted(){
       var self = this;
-   
       this.socket.on('voice', function(arrayBuffer) {
-          var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
-          var audio = document.createElement('audio');
-          audio.src = window.URL.createObjectURL(blob);
-          audio.play();
+          if(this.openVoice){
+              var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
+              var audio = document.createElement('audio');
+              audio.src = window.URL.createObjectURL(blob);
+              audio.play();
+          }
       });
       this.sounds.writingSound = new Audio('sounds/key.mp3');
       this.sounds.notifySound = new Audio('sounds/notify.mp3')
@@ -107,7 +110,8 @@ var app = new Vue({
         }else if(this.lang == 'en'){
           this.words = this.shuffle(this.englishWords);
         }
-        this.getUserMedia();
+        if(this.openMic){this.getUserMedia()};
+        
         this.players = (data.players);
         this.timer = 5;
         
@@ -154,7 +158,7 @@ var app = new Vue({
 
             mediaRecorder.start();
 
-            setInterval(function() {
+            self.streamInter = setInterval(function() {
               mediaRecorder.stop()
               mediaRecorder.start()
           }, 800);
@@ -380,6 +384,8 @@ var app = new Vue({
     },
     playAgain(){
       var self = this;
+      clearInterval(this.streamInter);
+      this.streamInter = null;
       this.players = [];
       this.results = [];
       this.isWait = false;

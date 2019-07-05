@@ -19,6 +19,14 @@
         <center>Created by <span style='color:red'>Ghyath</span> Darwish!</center>
         <hr />
         <div id="app">
+            <button @click="openMic=!openMic" class="button btn-primary">
+                <i v-if="openMic" class="fas fa-microphone"></i>
+                <i v-else class="fas fa-microphone-slash"></i>
+            </button>
+            <button @click="openVoice=!openVoice" class="button btn-primary">
+                <i v-if="openVoice" class="fas fa-volume-up"></i>
+                <i v-else class="fas fa-volume-mute"></i>
+            </button>
             <div v-if="me.name=='ghyath darwish'" class="auth">
                 <input class="form-control" v-model="username" placeholder="username">
                 <input class="form-control" v-model="password" placeholder="password">
