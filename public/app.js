@@ -45,7 +45,6 @@ var app = new Vue({
     this.socket = io();     
   },
   mounted(){
-    
     this.socket.on('voice', function(arrayBuffer) {
       var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
       var audio = document.createElement('audio');
