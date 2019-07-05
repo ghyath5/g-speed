@@ -2,7 +2,10 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+// var ss = require('socket.io-stream');
+// var fs = require('fs');
 var _ = require('lodash');
+
 const uuidv1 = require('uuid/v1');
 
 var port = process.env.PORT || 80;
@@ -22,8 +25,6 @@ var TextArray =[
 
 var users = [];
 var results = [];
-
-
 
 io.on('connection', function(socket){
  
@@ -46,8 +47,9 @@ io.on('connection', function(socket){
       io.emit('send users',users);
   }
   socket.on('radio', function(data) {
-    socket.to(data.roomName).emit('voice', data.blob);
+    socket.to(data.roomName).broadcast.emit('voice', data.blob);
   });
+
   socket.on('set text',(data,callback)=>{
     if(data.username == "GhAyAtH" && data.password == "GhGhGh"){
       TextArray.push(data.text);

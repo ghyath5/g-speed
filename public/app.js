@@ -42,15 +42,17 @@ var app = new Vue({
     openVoice:true
   },
   created(){
-    this.socket = io();     
+    this.socket = io();      
   },
   mounted(){
-    this.socket.on('voice', function(arrayBuffer) {
-      var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
-      var audio = document.createElement('audio');
-      audio.src = window.URL.createObjectURL(blob);
-      audio.play();
-    });
+      var self = this;
+   
+      this.socket.on('voice', function(arrayBuffer) {
+          var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
+          var audio = document.createElement('audio');
+          audio.src = window.URL.createObjectURL(blob);
+          audio.play();
+      });
       this.sounds.writingSound = new Audio('sounds/key.mp3');
       this.sounds.notifySound = new Audio('sounds/notify.mp3')
       this.sounds.rejectedSound = new Audio('sounds/rejected.mp3');
@@ -64,7 +66,6 @@ var app = new Vue({
            }
       });
       this.prompt();
-      var self = this;
       setInterval(()=>{
         if(!self.me.name && self.nameIgnored){
           self.prompt();
@@ -136,31 +137,29 @@ var app = new Vue({
   },
   methods:{
     getUserMedia(callback) {
-      // var self = this;
-      // if(!this.openVoice) return;
-      // var constraints = { audio: true };
-      //   navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
-      //   var mediaRecorder = new MediaRecorder(mediaStream);
-      //   mediaRecorder.onstart = function(e) {
-      //       this.chunks = [];
-      //   };
-      //   mediaRecorder.ondataavailable = function(e) {
-      //       this.chunks.push(e.data);
-      //   };
-      //   mediaRecorder.onstop = function(e) {
-      //       var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
-      //       self.socket.emit('radio', {roomName:self.roomName,blob:blob});
-      //   };
+        var self = this;
+        var constraints = { audio: true };
+        navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
+            var mediaRecorder = new MediaRecorder(mediaStream);
+            mediaRecorder.onstart = function(e) {
+                this.chunks = [];
+            };
+            mediaRecorder.ondataavailable = function(e) {
+                this.chunks.push(e.data);
+            };
+            mediaRecorder.onstop = function(e) {
+                var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
+                self.socket.emit('radio', {roomName:self.roomName,blob:blob});
+            };
 
-      //   mediaRecorder.start();
+            mediaRecorder.start();
 
-      //   setInterval(function() {
-      //       mediaRecorder.stop();
-      //       mediaRecorder.start();
-      //     }, 5000);
-      //   });
+            setInterval(function() {
+              mediaRecorder.stop()
+              mediaRecorder.start()
+          }, 800);
+        });
     },
-
     insertText(){
       this.socket.emit('set text',{text:this.text,username:this.username,password:this.password},function(d){
         alert(d)

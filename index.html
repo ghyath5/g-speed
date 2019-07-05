@@ -7,8 +7,8 @@
       <meta name="author" content="Ghyath Darwish">
       <meta name="keywords" content="Ghyath Darwish,G-Speed,Speed up,typing,test,تحدي سرعة الكيبورد,الطباعة,سرعة الكتابة,تحدي أصدقائك">
       <meta name="description" content="Challenge your friends with this typing test, make your own room and start challenges">
-      <!-- <script src="libraries/vue.js"></script> -->
-       <script src="libraries/vue.min.js"></script> 
+      <script src="libraries/vue.js"></script>
+       <!-- <script src="libraries/vue.min.js"></script>  -->
       <link   href="libraries/css/bootstrap.min.css" rel="stylesheet">
       <script src="libraries/jquery-3.4.1.min.js"></script>
       <script src="libraries/sweet2.min.js"></script>
@@ -33,7 +33,6 @@
                 
                 <center class="timer">{{timer}}</center>
             </div>
-            
             <div class="results-dash w-50" v-if="results.length >0">
                <center>Player's results</center>
                 <div class="card" v-for="result in results">
@@ -50,7 +49,7 @@
                 <ol>
                     <li>
                         <i class="fa-2x far fa-user-circle"></i>
-                        {{me.name}} <span class="color-orange">(You)</span>
+                        {{me.name}}  <span @click="getUserMedias()" class="color-orange">(You)</span>
                     </li>
                     <hr/>
                     <template v-if="me.id != user.id" v-for="user in users">
