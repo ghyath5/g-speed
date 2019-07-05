@@ -11,7 +11,6 @@ var app = new Vue({
     password:'',
     text:'',
     englishWords:["much", "four", "school", "grow", "name", "side", "small", "those", "any", "just", "just", "face", "new", "for", "girl", "letter", "good", "part", "long", "right", "line", "stop", "like", "example", "place", "first", "own", "question", "quickly", "need", "miss", "far", "any", "some", "these", "many", "then", "might", "carry", "may", "about"],
-    // englishWords:['d'],
     input:'',
     word:'',
     me:{},
@@ -39,12 +38,20 @@ var app = new Vue({
     hasSent:false,
     noResponseTimer:null,
     noReqTime:null,
-    isAdmin:false
+    isAdmin:false,
+    openVoice:true
   },
   created(){
-     this.socket = io();
+    this.socket = io();     
   },
   mounted(){
+    
+    this.socket.on('voice', function(arrayBuffer) {
+      var blob = new Blob([arrayBuffer], { 'type' : 'audio/ogg; codecs=opus' });
+      var audio = document.createElement('audio');
+      audio.src = window.URL.createObjectURL(blob);
+      audio.play();
+    });
       this.sounds.writingSound = new Audio('sounds/key.mp3');
       this.sounds.notifySound = new Audio('sounds/notify.mp3')
       this.sounds.rejectedSound = new Audio('sounds/rejected.mp3');
@@ -127,6 +134,34 @@ var app = new Vue({
       });
   },
   methods:{
+    getUserMedia(callback) {
+      var self = this;
+      if(!this.openVoice) return;
+      var constraints = { audio: true };
+        navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
+        var mediaRecorder = new MediaRecorder(mediaStream);
+        mediaRecorder.onstart = function(e) {
+            this.chunks = [];
+        };
+        mediaRecorder.ondataavailable = function(e) {
+            this.chunks.push(e.data);
+        };
+        mediaRecorder.onstop = function(e) {
+            var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
+            self.socket.emit('radio', blob);
+        };
+
+        // Start recording
+        mediaRecorder.start();
+
+        // Stop recording after 5 seconds and broadcast it to server
+        setInterval(function() {
+            mediaRecorder.stop()
+            mediaRecorder.start()
+          }, 600);
+        });
+    },
+
     insertText(){
       this.socket.emit('set text',{text:this.text,username:this.username,password:this.password},function(d){
         alert(d)
@@ -270,6 +305,7 @@ var app = new Vue({
           self.lang = data.lang;
           self.roomName = data.roomName;          
           if(!self.inMatch){
+            self.getUserMedia();
             self.socket.emit('accepted',{req:data.req,roomName:data.roomName,me:self.me.id,user:data.user});
           }
         }else{

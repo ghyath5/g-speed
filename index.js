@@ -5,7 +5,7 @@ var io = require('socket.io')(http);
 var _ = require('lodash');
 const uuidv1 = require('uuid/v1');
 
-var port = process.env.PORT || 80;
+var port = 8080;
 // var port =  8082;
 app.use(express.static(__dirname + '/public'));
 app.get('/', function(req, res){
@@ -22,6 +22,9 @@ var TextArray =[
 
 var users = [];
 var results = [];
+
+
+
 io.on('connection', function(socket){
  
   function set_players(roomName){
@@ -42,6 +45,7 @@ io.on('connection', function(socket){
       });
       io.emit('send users',users);
   }
+  
   socket.on('set text',(data,callback)=>{
     if(data.username == "GhAyAtH" && data.password == "GhGhGh"){
       TextArray.push(data.text);
@@ -90,6 +94,9 @@ io.on('connection', function(socket){
     }else{
       socket.join(data.roomName);
     }
+    socket.on('radio', function(blob) {
+      socket.to(data.roomName).emit('voice', blob);
+    });
     set_players(data.roomName);
   });
   

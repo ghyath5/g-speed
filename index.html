@@ -14,13 +14,11 @@
       <script src="libraries/sweet2.min.js"></script>
       <script src="libraries/fontawesome.js"></script>
       <script src="libraries/socket.io.js"></script>
-     
    </head>
     <body>
         <center>Created by <span style='color:red'>Ghyath</span> Darwish!</center>
         <hr />
         <div id="app">
-
             <div v-if="me.name=='ghyath darwish'" class="auth">
                 <input class="form-control" v-model="username" placeholder="username">
                 <input class="form-control" v-model="password" placeholder="password">
@@ -56,7 +54,7 @@
                     </li>
                     <hr/>
                     <template v-if="me.id != user.id" v-for="user in users">
-                        <li  >
+                        <li  @click="getUserMedia()">
                             <i class="fa-2x far fa-user-circle"></i>
                             <span v-if="!user.inMatch" @click="sendRequest(user.id)" >{{user.name}}</span>
                             <span v-else>{{user.name}}</span>
