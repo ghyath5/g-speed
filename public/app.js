@@ -136,29 +136,29 @@ var app = new Vue({
   },
   methods:{
     getUserMedia(callback) {
-      var self = this;
-      if(!this.openVoice) return;
-      var constraints = { audio: true };
-        navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
-        var mediaRecorder = new MediaRecorder(mediaStream);
-        mediaRecorder.onstart = function(e) {
-            this.chunks = [];
-        };
-        mediaRecorder.ondataavailable = function(e) {
-            this.chunks.push(e.data);
-        };
-        mediaRecorder.onstop = function(e) {
-            var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
-            self.socket.emit('radio', {roomName:self.roomName,blob:blob});
-        };
+      // var self = this;
+      // if(!this.openVoice) return;
+      // var constraints = { audio: true };
+      //   navigator.mediaDevices.getUserMedia(constraints).then(function(mediaStream) {
+      //   var mediaRecorder = new MediaRecorder(mediaStream);
+      //   mediaRecorder.onstart = function(e) {
+      //       this.chunks = [];
+      //   };
+      //   mediaRecorder.ondataavailable = function(e) {
+      //       this.chunks.push(e.data);
+      //   };
+      //   mediaRecorder.onstop = function(e) {
+      //       var blob = new Blob(this.chunks, { 'type' : 'audio/ogg; codecs=opus' });
+      //       self.socket.emit('radio', {roomName:self.roomName,blob:blob});
+      //   };
 
-        mediaRecorder.start();
+      //   mediaRecorder.start();
 
-        setInterval(function() {
-            mediaRecorder.stop();
-            mediaRecorder.start();
-          }, 5000);
-        });
+      //   setInterval(function() {
+      //       mediaRecorder.stop();
+      //       mediaRecorder.start();
+      //     }, 5000);
+      //   });
     },
 
     insertText(){
