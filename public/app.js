@@ -89,7 +89,7 @@ var app = new Vue({
         this.hasSent = false;
         this.lang = '';
         clearTimeout(this.noResponseTimer);
-        Swal.fire("<span style='font-weight:bold;color:orange'>"+user.name+ " </span> "+' rejected your request')
+        Swal.fire(`<span style='font-weight:bold;color:orange'>${user.name}</span> &nbsp; Rejected your request`)
       });
       this.socket.on('request from',(data)=>{
          if(this.inMatch || this.isPrompet || this.isWait || (this.lang != '' && data.lang != this.lang)){
